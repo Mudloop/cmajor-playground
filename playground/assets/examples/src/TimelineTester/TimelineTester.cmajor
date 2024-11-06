@@ -1,0 +1,57 @@
+//
+//     ,ad888ba,                              88
+//    d8"'    "8b
+//   d8            88,dba,,adba,   ,aPP8A.A8  88     (C)2024 Cmajor Software Ltd
+//   Y8,           88    88    88  88     88  88
+//    Y8a.   .a8P  88    88    88  88,   ,88  88     https://cmajor.dev
+//     '"Y888Y"'   88    88    88  '"8bbP"Y8  88
+//                                           ,88
+//                                        888P"
+//
+//  This code may be used under either a GPLv3 or commercial
+//  license: see LICENSE.md for more details.
+
+
+/// Title: Timeline example
+///
+/// This example demonstrates the timeline structures and how to access them.
+/// It simply copies the input events to output events so they can be logged.
+
+processor TimelineTester
+{
+    input
+    {
+        event std::timeline::TimeSignature     timeSigIn;
+        event std::timeline::Tempo             tempoIn;
+        event std::timeline::TransportState    transportStateIn;
+        event std::timeline::Position          positionIn;
+    }
+
+    output
+    {
+        event std::timeline::TimeSignature     timeSigOut;
+        event std::timeline::Tempo             tempoOut;
+        event std::timeline::TransportState    transportStateOut;
+        event std::timeline::Position          positionOut;
+    }
+
+    event timeSigIn (std::timeline::TimeSignature t)
+    {
+        timeSigOut <- t;
+    }
+
+    event tempoIn (std::timeline::Tempo t)
+    {
+        tempoOut <- t;
+    }
+
+    event transportStateIn (std::timeline::TransportState t)
+    {
+        transportStateOut <- t;
+    }
+
+    event positionIn (std::timeline::Position p)
+    {
+        positionOut <- p;
+    }
+}

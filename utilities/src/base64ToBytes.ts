@@ -1,0 +1,1 @@
+export const base64ToBytes = (wasm: string | Uint8Array) => typeof wasm == 'string' ? new Uint8Array([...atob(wasm)].map(c => c.charCodeAt(0))) : wasm;

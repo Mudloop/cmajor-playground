@@ -1,0 +1,190 @@
+namespace Ampsim {
+	processor Tonestack {
+		input event int32 type_in [[ name: "Type", text: "Bassman|Mesa|Twin|Princeton|JCM800|JCM2000|JTM45|MLead|M2199|AC30|AC15|Soldano|Sovtek|Peavey|Ibanez|Roland|Ampeg|Ampeg Rev|Bogner|Groove|Crunch|Fender Blues|Fender Default|Fender Deville|Gibsen" ]];
+		input event float32 bass_in [[ name: "Bass", group: "/v:tone/Bass", min: 0.0f, max: 1.0f, init: 0.5f, step: 0.01f ]];
+		input event float32 mid_in [[ name: "Middle", group: "/v:tone/Middle", min: 0.0f, max: 1.0f, init: 0.5f, step: 0.01f ]];
+		input event float32 treble_in [[ name: "Treble", group: "/v:tone/Treble", min: 0.0f, max: 1.0f, init: 0.5f, step: 0.01f ]];
+		
+		input stream float32<2> in;
+		output stream float32<2> out;
+
+		struct ToneData {
+			float32 r1;
+			float32 r2;
+			float32 r3;
+			float32 r4;
+			float32 c1;
+			float32 c2;
+			float32 c3;
+		}
+		
+		let BASSMAN = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 25.00000f * 1e3f, 56.00000f * 1e3f, 250.00000f * 1e-12f, 20.00000f * 1e-9f, 20.00000f * 1e-9f);
+		let MESA = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 25.00000f * 1e3f, 100.00000f * 1e3f, 250.00000f * 1e-12f, 100.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let TWIN = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 10.00000f * 1e3f, 100.00000f * 1e3f, 120.00000f * 1e-12f, 100.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let PRINCETON = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 4.80000f * 1e3f, 100.00000f * 1e3f, 250.00000f * 1e-12f, 100.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let JCM800 = ToneData(220.00000f * 1e3f, 1.00000f * 1e6f, 22.00000f * 1e3f, 33.00000f * 1e3f, 470.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let JCM2000 = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 25.00000f * 1e3f, 56.00000f * 1e3f, 500.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let JTM45 = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 25.00000f * 1e3f, 33.00000f * 1e3f, 270.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let MLEAD = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 25.00000f * 1e3f, 33.00000f * 1e3f, 500.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let M2199 = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 25.00000f * 1e3f, 56.00000f * 1e3f, 250.00000f * 1e-12f, 47.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let AC30 = ToneData(1.00000f * 1e6f, 1.00000f * 1e6f, 10.00000f * 1e3f, 100.00000f * 1e3f, 50.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let AC15 = ToneData(220.00000f * 1e3f, 220.00000f * 1e3f, 220.00000f * 1e3f, 100.00000f * 1e3f, 470.00000f * 1e-12f, 100.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let SOLDANO = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 25.00000f * 1e3f, 47.00000f * 1e3f, 470.00000f * 1e-12f, 20.00000f * 1e-9f, 20.00000f * 1e-9f);
+		let SOVTEK = ToneData(500.00000f * 1e3f, 1.00000f * 1e6f, 10.00000f * 1e3f, 47.00000f * 1e3f, 470.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let PEAVEY = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 20.00000f * 1e3f, 68.00000f * 1e3f, 270.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let IBANEZ = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 10.00000f * 1e3f, 100.00000f * 1e3f, 270.00000f * 1e-12f, 100.00000f * 1e-9f, 40.00000f * 1e-9f);
+		let ROLAND = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 10.00000f * 1e3f, 41.00000f * 1e3f, 240.00000f * 1e-12f, 33.00000f * 1e-9f, 82.00000f * 1e-9f);
+		let AMPEG = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 25.00000f * 1e3f, 32.00000f * 1e3f, 470.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let AMPEG_REV = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 10.00000f * 1e3f, 100.00000f * 1e3f, 100.00000f * 1e-12f, 100.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let BOGNER = ToneData(250.00000f * 1e3f, 1.00000f * 1e6f, 33.00000f * 1e3f, 51.00000f * 1e3f, 220.00000f * 1e-12f, 15.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let GROOVE = ToneData(220.00000f * 1e3f, 1.00000f * 1e6f, 22.00000f * 1e3f, 68.00000f * 1e3f, 470.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let CRUNCH = ToneData(220.00000f * 1e3f, 220.00000f * 1e3f, 10.00000f * 1e3f, 100.00000f * 1e3f, 220.00000f * 1e-12f, 47.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let FENDER_BLUES = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 25.00000f * 1e3f, 100.00000f * 1e3f, 250.00000f * 1e-12f, 22.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let FENDER_DEFAULT = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 10.00000f * 1e3f, 100.00000f * 1e3f, 250.00000f * 1e-12f, 100.00000f * 1e-9f, 47.00000f * 1e-9f);
+		let FENDER_DEVILLE = ToneData(250.00000f * 1e3f, 250.00000f * 1e3f, 25.00000f * 1e3f, 130.00000f * 1e3f, 250.00000f * 1e-12f, 100.00000f * 1e-9f, 22.00000f * 1e-9f);
+		let GIBSEN = ToneData(1.00000f * 1e6f, 1.00000f * 1e6f, 94.00000f * 1e3f, 270.00000f * 1e3f, 25.00000f * 1e-12f, 60.00000f * 1e-9f, 20.00000f * 1e-9f);
+		ToneData tone = FENDER_DEFAULT;
+
+		let tones = ToneData[25](BASSMAN, MESA, TWIN, PRINCETON, JCM800, JCM2000, JTM45, MLEAD, M2199, AC30, AC15, SOLDANO, SOVTEK, PEAVEY, IBANEZ, ROLAND, AMPEG, AMPEG_REV, BOGNER, GROOVE, CRUNCH, FENDER_BLUES, FENDER_DEFAULT, FENDER_DEVILLE, GIBSEN);
+		
+
+		const float32 fConst0 = 2.0f * min (1.92e+05f, max (1.0f, float32 (processor.frequency)));
+		const float32 fConst1 = pow (fConst0, 2.0f);
+		const float32 fConst2 = pow (fConst0, 3.0f);
+		const float32 fConst3 = 3.0f * fConst2;
+		wrap<18> type = 0;
+		float32 fSlow2;
+		float32 fSlow5;
+		float32 mid;
+		float32 fSlow9;
+		float32 fSlow10;
+		float32 bass;
+		float32 fSlow12;
+		float32 fSlow13;
+		float32 fSlow14;
+		float32 fSlow15;
+		float32 fSlow16;
+		float32 fSlow17;
+		float32 fSlow18;
+		float32 fSlow19;
+		float32 fSlow20;
+		float32 fSlow21;
+		float32 fSlow22;
+		float32 fSlow23;
+		float32 fSlow24;
+		float32 fSlow25;
+		float32 fSlow26;
+		float32 fSlow27;
+		float32 fSlow28;
+		float32 treble;
+		float32 fSlow30;
+		float32 fSlow31;
+		float32 fSlow32;
+		float32 fSlow33;
+		float32 fSlow34;
+		float32 fSlow35;
+		float32 fSlow36;
+		float32 fSlow37;
+		float32 fSlow38;
+		float32 fSlow39;
+		float32 fSlow40;
+		float32 fSlow41;
+		float32 fSlow42;
+		float32 fSlow43;
+		float32 fSlow44;
+		float32 fSlow45;
+		float32[4] fRec0;
+		float32 fSlow46;
+		float32 fSlow47;
+		float32 fSlow48;
+		float32 fSlow49;
+		float32 fSlow50;
+		float32[4] fRec1;
+		bool dirty;
+
+		event type_in(int32 val) {
+			type = wrap<18>(val);
+			tone = tones[type];
+			updateTone();
+		}
+		
+		
+		event bass_in (float32 val) { dirty ||= (bass != val); bass = val; } 
+		event mid_in (float32 val) { dirty ||= (mid != val); mid = val; } 
+		event treble_in (float32 val) { dirty ||= (treble != val); treble = val; } 
+		
+		void updateTone() {
+			fSlow2 = tone.c3 * tone.r3;
+			fSlow5 = tone.c2 * tone.r4;
+			fSlow9 = tone.c1 * (tone.r1 + tone.r3);
+			fSlow10 = tone.c1 + tone.c2;
+			fSlow16 = tone.r1 + tone.r4;
+			fSlow17 = tone.c3 * tone.r4 + tone.c2 * fSlow16;
+			fSlow19 = tone.c2 * tone.r1 * tone.r3;
+			fSlow20 = tone.c2 * tone.r3;
+			fSlow21 = tone.c2 + tone.c3;
+			fSlow22 = fSlow20 + tone.r1 * fSlow21;
+			fSlow25 = tone.c1 * tone.c2 * tone.c3;
+			fSlow26 = tone.r1 * tone.r4;
+			fSlow32 = tone.r1 * tone.r2 * tone.r4;
+			fSlow36 = tone.c1 * tone.r1;
+			control();
+		}
+		
+		void control() {
+			fSlow12 = exp (3.4f * (bass + -1.0f));
+			fSlow13 = tone.r2 * fSlow12;
+			fSlow14 = tone.r3 * mid;
+			fSlow15 = fSlow13 - fSlow14;
+			
+			fSlow18 = fSlow13 * (tone.c2 * tone.c3 * tone.r4 + tone.c1 * fSlow17);
+			
+			
+			fSlow23 = fSlow13 * fSlow10;
+			fSlow24 = fConst0 * (fSlow9 + tone.c2 * (tone.r3 + tone.r4) + tone.c3 * (tone.r4 + fSlow14) + fSlow23);
+			
+			fSlow27 = tone.r3 + fSlow13;
+			fSlow28 = 1.0f / (-1.0f - (fConst1 * (fSlow2 * (fSlow5 + mid * (fSlow9 + tone.c2 * (tone.r3 - tone.r4) + fSlow10 * fSlow15)) + fSlow18 + tone.c1 * (fSlow19 + tone.r4 * (fSlow2 + fSlow22))) + fSlow24 + fConst2 * fSlow25 * (fSlow14 * ((tone.r3 + fSlow15) * fSlow16 - fSlow26) + fSlow26 * fSlow27)));
+			fSlow30 = fSlow26 * treble;
+			fSlow31 = fConst1 * (fSlow2 * mid * (tone.r3 * (tone.c2 - mid * fSlow10) + fSlow9 + fSlow23) + tone.c1 * (fSlow30 * fSlow21 + fSlow17 * fSlow27));
+			
+			fSlow33 = 1.0f - mid;
+			fSlow34 = fSlow25 * (fSlow32 * treble * fSlow12 + tone.r3 * (mid * (tone.r3 * fSlow33 + fSlow13) * fSlow16 + fSlow30 * fSlow33));
+			fSlow35 = fConst3 * fSlow34;
+			
+			fSlow37 = fConst0 * (fSlow36 * treble + tone.r3 * (tone.c3 * mid + fSlow10) + fSlow23);
+			fSlow38 = fSlow31 + fSlow35 - fSlow37;
+			fSlow39 = fConst2 * fSlow25 * (fSlow32 * fSlow12 + fSlow14 * (fSlow16 * fSlow15 - (fSlow26 - tone.r3 * fSlow16)) + tone.r1 * tone.r3 * tone.r4);
+			fSlow40 = fSlow39 + fSlow24;
+			fSlow41 = fConst1 * (fSlow18 + tone.c1 * (tone.r4 * fSlow22 + fSlow19 + fSlow2 * tone.r4) + fSlow2 * (fSlow5 - mid * (fSlow14 * fSlow10 - (fSlow23 + fSlow20 + tone.c1 * tone.r3 + (fSlow36 - fSlow5)))));
+			fSlow42 = 1.0f / (-1.0f - (fSlow40 + fSlow41));
+			fSlow43 = fSlow41 - (3.0f * (1.0f - fSlow39) + fSlow24);
+			fSlow44 = fSlow24 + fSlow41 - 3.0f * (fSlow39 + 1.0f);
+			fSlow45 = fSlow40 + (-1.0f - fSlow41);
+			fSlow46 = fSlow37 + fSlow31;
+			fSlow47 = fSlow46 - fSlow35;
+			fSlow48 = fConst2 * fSlow34;
+			fSlow49 = fSlow37 + fSlow48 - fSlow31;
+			fSlow50 = fSlow48 + fSlow46;
+			dirty = false;
+		}
+
+		void main() {
+			updateTone();
+			loop {
+				if (dirty) { control(); }
+				fRec0[0] = in[0] - fSlow42 * (fSlow43 * fRec0[1] + fSlow44 * fRec0[2] + fSlow45 * fRec0[3]);
+				fRec1[0] = in[1] - fSlow42 * (fSlow43 * fRec1[1] + fSlow44 * fRec1[2] + fSlow45 * fRec1[3]);
+				out <- float32<2>(
+					fSlow28 * (fSlow38 * fRec0[1] + fSlow47 * fRec0[2] + fSlow49 * fRec0[3] - fSlow50 * fRec0[0]),
+					fSlow28 * (fSlow38 * fRec1[1] + fSlow47 * fRec1[2] + fSlow49 * fRec1[3] - fSlow50 * fRec1[0])
+				);
+				for (int32 i = 3; i > 0; i = i - 1) {
+					fRec0.at (i) = fRec0.at (i - 1);
+					fRec1.at (i) = fRec1.at (i - 1);
+				}
+				advance();
+			}
+		}
+	}
+}

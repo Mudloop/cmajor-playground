@@ -1,0 +1,63 @@
+namespace Ampsim {
+	graph Amp {
+        input stream float32<2> in;
+        output stream float32<2> out;
+        input {
+			tone.type_in amp_type_in;
+			gain1.gain_in preamp_in [[name: "Preamp", init: .2, min: 0, max: 1]];
+			tone.bass_in; tone.mid_in; tone.treble_in;
+        	gain2.gain_in gain_in [[name: "Gain", init: .2, min: 0, max: 1]];
+			tube1.type_in tube1_type_in;
+			tube2.type_in tube2_type_in;
+			speaker.amount_in speaker_in;
+		}
+		node {
+			gain1 = SimpleGain, tube1 = Tube(2, 1), lp1 = LP;
+        	gain2 = SimpleGain, tube2 = Tube(2, 2), lp2 = LP;
+        	tone = Tonestack, lp3 = LP, speaker = Speaker;
+		}
+		connection {
+			in -> tube1.in; tube1.out -> gain1.in; gain1.out -> lp1.in;
+			lp1.out -> tube2.in; tube2.out -> gain2.in; gain2.out -> lp2.in;
+        	lp2.out -> tone.in; tone.out -> lp3.in; lp3.out -> speaker.in; speaker.out -> out;
+		}
+    }
+	processor SimpleGain {
+		input stream float32<2> in;
+		output stream float32<2> out;
+		input event float32 gain_in;
+        event gain_in(float32 val) { gain = val;}
+		void main() { loop { out <- float32<2>(in * gain); advance(); } }
+		float32 gain = .2f;
+	}
+
+	processor LP {
+		input stream float32<2> in;
+		output stream float32<2> out;
+		const float32 fConst0 = 1.0f / tan (20517.742f / min (1.92e+05f, max (1.0f, float32 (processor.frequency))));
+		const float32 fConst1 = 1.0f / (fConst0 + 1.0f);
+		const float32 fConst2 = 1.0f - fConst0;
+		float32[2] fVec0;
+		float32[2] fRec0;
+		float32[2] fVec1;
+		float32[2] fRec1;
+		
+		void main() {
+			loop {
+				float32 fTemp0 = in[0];
+				fVec0[0] = fTemp0;
+				fRec0[0] = -(fConst1 * (fConst2 * fRec0[1] - (fTemp0 + fVec0[1])));
+				float32 fTemp1 = in[1];
+				fVec1[0] = fTemp1;
+				fRec1[0] = -(fConst1 * (fConst2 * fRec1[1] - (fTemp1 + fVec1[1])));
+				out <- float32<2>(fRec0[0], fRec1[0]);
+				fVec0[1] = fVec0[0];
+				fRec0[1] = fRec0[0];
+				fVec1[1] = fVec1[0];
+				fRec1[1] = fRec1[0];
+				advance();
+			}
+		}
+	}
+
+}

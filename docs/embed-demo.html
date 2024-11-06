@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+			margin: 0;
+        }
+        p {
+            color: #666;
+            text-align: justify;
+			margin: 0;
+        }
+		.container {
+			max-width: 800px;
+			margin: 0 auto;
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+		cmaj-embedder {
+			margin-left: auto;
+			margin-right: auto;
+			width: 800px;
+			height: 500px;
+		}
+    </style>
+</head>
+<body>
+	<div class="container">
+		<h1>Embedding Demo</h1>
+		<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+		<cmaj-embedder></cmaj-embedder>
+	</div>
+	
+	<script src="./bundle/js/embedder.js" type="module"></script>
+</body>
+</html>

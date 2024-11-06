@@ -1,0 +1,10 @@
+graph Main  [[ main ]] {
+    output stream float32<2> out;
+    input synth.*;
+    input amp.*_*;
+    input value float32 volume [[name: "Volume", init: .2, min: 0, max: 1]];
+    node synth = SimpleSynth;
+    node amp = Ampsim::Amp;
+    connection float32<2>(synth.out, synth.out) -> amp.in;
+    connection amp.out * volume -> out;
+}

@@ -1,0 +1,1 @@
+export const sanitizePath = (path: string) => path.split('/').map(p => p.trim()).filter(p => (p || '.') != '.').filter((p, i, a) => p != '..' && a[i + 1] != '..').join('/')

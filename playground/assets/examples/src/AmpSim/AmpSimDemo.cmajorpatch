@@ -1,0 +1,19 @@
+{
+    "CmajorVersion": 1,
+    "ID": "com.your_name.your_patch_ID",
+    "version": "1.0",
+    "name": "AmpSimDemo",
+    "description": "AmpSimDemo",
+    "category": "generator",
+    "manufacturer": "Your Company Goes Here",
+    "isInstrument": true,
+
+    "source": [
+        "./src/AmpSimDemo.cmajor",
+        "./src/SimpleSynth.cmajor",
+        "./src/Amp.cmajor",
+        "./src/Speaker.cmajor",
+        "./src/Tone.cmajor",
+        "./src/Tube.cmajor"
+    ]
+}

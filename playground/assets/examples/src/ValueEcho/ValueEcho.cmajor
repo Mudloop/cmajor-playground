@@ -1,0 +1,37 @@
+//
+//     ,ad888ba,                              88
+//    d8"'    "8b
+//   d8            88,dba,,adba,   ,aPP8A.A8  88     (C)2024 Cmajor Software Ltd
+//   Y8,           88    88    88  88     88  88
+//    Y8a.   .a8P  88    88    88  88,   ,88  88     https://cmajor.dev
+//     '"Y888Y"'   88    88    88  '"8bbP"Y8  88
+//                                           ,88
+//                                        888P"
+//
+//  This code may be used under either a GPLv3 or commercial
+//  license: see LICENSE.md for more details.
+
+
+// Simple example which converts an incoming value to an output event for logging
+
+processor ValueEcho
+{
+    input value float inValue [[ name: "Value In",  min: 0, max: 1.0, init:  0.0 ]];
+    output event float outEvent;
+
+    void main()
+    {
+        int count = 0;
+
+        loop
+        {
+            if (++count >= processor.frequency / 25)
+            {
+                outEvent <- inValue;
+                count = 0;
+            }
+
+            advance();
+        }
+    }
+}

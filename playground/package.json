@@ -1,0 +1,36 @@
+{
+	"name": "cmajor-playground",
+	"scripts": {
+		"build": "bun build --entrypoints ./src/index.ts --outdir ../docs/bundle --root '.' --target browser --packages bundle --sourcemap=linked --entry-naming js/[name].[ext] --asset-naming assets/[dir]/[name].[ext] --minify",
+		"build:previews": "bun build --entrypoints ./src/previews/index.ts --outdir ../docs/bundle --root '.' --target browser --packages bundle --sourcemap=linked --entry-naming js/previews.[ext] --asset-naming assets/[dir]/[name].[ext] --minify",
+		"build:embedder": "bun build --entrypoints ./src/embedder/index.ts --outdir ../docs/bundle --root '.' --target browser --packages bundle --sourcemap=linked --entry-naming js/embedder.[ext] --asset-naming assets/[dir]/[name].[ext] --minify",
+		"build:html": "bun build --entrypoints ./assets/html/index.html ./assets/html/preview.html ./assets/html/embed-demo.html --outdir ../docs --target browser --asset-naming [name].[ext] --entry-naming ../artifacts/temp/[name].[ext]",
+		"build:service-worker": "bun build --entrypoints ./src/service-worker/service.worker.ts --outdir ../docs --target browser --entry-naming [name].[ext] --minify",
+		"watch": "bun run build --watch & bun run build:html --watch & bun run build:service-worker --watch & bun run build:previews --watch & bun run build:embedder --watch",
+		"serve": "bun web-dev-server --node-resolve --watch --root-dir ../docs --open",
+		"start": "npm run watch & npm run serve"
+	},
+	"devDependencies": {
+		"@grame/faustwasm": "^0.7.4",
+		"@types/bun": "^1.1.12",
+		"@web/dev-server": "^0.4.6",
+		"tslib": "^2.7.0"
+	},
+	"dependencies": {
+		"@cmajor-playground/build-systems": "../build-systems",
+		"@cmajor-playground/builders": "../builders",
+		"@cmajor-playground/bunaco": "../bunaco",
+		"@cmajor-playground/utilities": "../utilities",
+		"@lit/context": "^1.1.3",
+		"@lit/task": "^1.0.1",
+		"@types/minify": "^9.1.4",
+		"@types/natural-sort": "^1.0.0",
+		"@types/path-browserify": "^1.0.3",
+		"lit": "^3.2.1",
+		"mime": "^4.0.4",
+		"natural-sort": "^1.0.0",
+		"path": "^0.12.7",
+		"path-browserify": "^1.0.1"
+	},
+	"type": "module"
+}
