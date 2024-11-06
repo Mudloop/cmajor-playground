@@ -1,7 +1,7 @@
 import { isBinary, sanitizePath, VirtualFS } from "@cmajor-playground/utilities";
 import ts from 'typescript';
 import { mtype } from "../mtype";
-
+const loc = new URL('.', location.href).href;
 const vfs = new VirtualFS('CmajPlayground');
 class PatchService {
 	static {
@@ -10,8 +10,9 @@ class PatchService {
 		self.addEventListener('activate', (event: any) => event.waitUntil((globalThis as any).clients.claim()));
 	}
 	static handleFetch(event: FetchEvent) {
-		const url = new URL(event.request.url).pathname;
-		url.startsWith('/$') ? event.respondWith(this.serveFromVolume(url.substring(2))) : undefined
+		const url = new URL(event.request.url).href.replace(loc, '');
+		// console.log('url', url);
+		url.startsWith('$') ? event.respondWith(this.serveFromVolume(url.substring(1))) : undefined
 	}
 	static async serveFromVolume(url: string): Promise<Response> {
 		const [volumeId, rootId] = url.substring(0, url.indexOf('/')).split('$');

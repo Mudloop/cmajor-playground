@@ -7,7 +7,7 @@ export * from './work';
 export * from './DB';
 export * from './MagicFS';
 export * from './VirtualFS';
-export * from './VirtualFSExtensions';
+// export * from './VirtualFSExtensions';
 export * from './TaskManager';
 export * from './sanitizePath';
 export * from './base64ToBytes';

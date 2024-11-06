@@ -7,7 +7,6 @@ import { ProjectInfo } from "../state/Types";
 import { Modals } from "./Modals";
 import JSZip from "jszip";
 import { App } from "../state";
-import { VirtualFSExtensions } from "@cmajor-playground/utilities";
 
 @customElement('cmaj-projects') export class ProjectPanel extends LitElement {
 
@@ -206,7 +205,7 @@ import { VirtualFSExtensions } from "@cmajor-playground/utilities";
 		e.preventDefault();
 		e.stopPropagation();
 		const volume = await App.vfs.getVolume(project.id);
-		const zip = await VirtualFSExtensions.zipFolder(volume, '');
+		const zip = await volume.zipFolder('');
 		if (project.id != this.playground.project?.info.id) volume.close();
 		const blob = await zip.generateAsync({ type: 'blob' });
 		const url = URL.createObjectURL(blob);
@@ -225,7 +224,7 @@ import { VirtualFSExtensions } from "@cmajor-playground/utilities";
 			let i = 1;
 			while (usedNames.has(name)) name = project.name + ' (' + ++i + ')';
 			usedNames.add(name);
-			await VirtualFSExtensions.zipFolder(volume, '', zip, name);
+			await volume.zipFolder('', zip, name);
 			if (project.id != this.playground.project?.info.id) volume.close();
 		}
 		const blob = await zip.generateAsync({ type: 'blob' });

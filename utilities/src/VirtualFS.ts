@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { DB, Writer } from "./DB";
 import { generateUniqueId } from "./generateUniqueId";
 import { sanitizePath } from "./sanitizePath";
@@ -90,6 +91,7 @@ export class Volume {
 	async readBinary(inputPath: string): Promise<Uint8Array> { return this.read(inputPath, 'binary'); }
 	private async read<T extends string | Uint8Array = Uint8Array>(inputPath: string, encoding: 'string' | 'binary'): Promise<T> {
 		const path = sanitizePath(inputPath);
+		console.log('Reading', path);
 		const ret = await this.db.read(['entries', 'content'], async (accessors) => {
 			const file = await accessors.entries.findOne('[volume,path]', [this.id, path]);
 			if (!file || file.type !== 'file') throw new Error('File not found: ' + path);
@@ -245,6 +247,20 @@ export class Volume {
 			});
 			for (let hash in contents) await Volume.removeContentIfNeeded(hash, accessors.entries, accessors.content, contents[hash]);
 		});
+	}
+	async zipFolder(path: string, zip?: JSZip, prefixPath: string = '') {
+		path = sanitizePath(path);
+		if (path != '') path += '/';
+		prefixPath = sanitizePath(prefixPath);
+		zip ??= new JSZip();
+		await this.db.read(['entries', 'content'], async (accessors) => {
+			const entries = (await accessors.entries.find('volume', this.id)).filter(f => f.path.startsWith(path));
+			for (const entry of entries) {
+				const destPath = sanitizePath(prefixPath + '/' + entry.path.slice(path.length));
+				entry.type == 'file' ? zip.file(destPath, (await accessors.content.get(entry.hash)).content) : zip.folder(destPath);
+			}
+		});
+		return zip;
 	}
 	
 	async cloneTo(targetVolume: Volume, srcPath: string = '', targetPath: string = '') {

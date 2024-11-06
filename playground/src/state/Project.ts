@@ -1,5 +1,5 @@
 import { ProjectInfo, Manifest } from "./Types";
-import { isBinary, MagicFile, MagicFS, sanitizePath, Trigger, VirtualFSExtensions, Volume } from "@cmajor-playground/utilities";
+import { isBinary, MagicFile, MagicFS, sanitizePath, Trigger, Volume } from "@cmajor-playground/utilities";
 import { App } from "./App";
 import { Modals } from "../components/Modals";
 import { FileEditorBase } from "../components/FileEditorBase";
@@ -113,7 +113,7 @@ export class Project {
 		this.onFilesChange.trigger();
 	}
 	download = async () => {
-		const zip = await VirtualFSExtensions.zipFolder(this.volume, '');
+		const zip = await this.volume.zipFolder('');
 		const blob = await zip.generateAsync({ type: 'blob' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');

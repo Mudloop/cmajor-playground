@@ -13,6 +13,7 @@ self.MonacoEnvironment = {
 			case 'html': case 'handlebars': case 'razor': return new URL(htmlWorker, import.meta.url).href;
 			case 'typescript': case 'javascript': return new URL(tsWorker, import.meta.url).href;
 		}
+		console.log('monaco', editorWorker, import.meta.url, new URL(editorWorker, import.meta.url).href);
 		return new URL(editorWorker, import.meta.url).href;
 	}
 };
