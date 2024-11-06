@@ -44,8 +44,11 @@ import { BuildRenderer } from "../index.js";
 	constructor(public manifest: Manifest, public version: string, public code: string, public fileId: string) {
 		super();
 		if (!window.customElements.get('cmaj-panel-piano-keyboard')) customElements.define('cmaj-panel-piano-keyboard', PianoKeyboard);
+		// console.log(code);
 	}
 	init = async (ctx: AudioContext) => {
+		ctx = new AudioContext();
+		ctx.suspend();
 
 		const connection = this.connection = new helpers.AudioWorkletPatchConnection(this.manifest);
 		connection.addAllParameterListener(async () => {
@@ -80,13 +83,17 @@ import { BuildRenderer } from "../index.js";
 			keyboard.style.display = 'flex';
 			footer.appendChild(keyboard);
 		}
-		while (ctx.state === 'suspended') {
-			await new Promise(r => setTimeout(r, 100));
-		}
-		connection.connectDefaultAudioAndMIDI(ctx);
+		// while (ctx.state === 'suspended') {
+		// 	await new Promise(r => setTimeout(r, 100));
+		// }
+		document.addEventListener('pointerdown', () => {
+			ctx.resume();
+			connection.connectDefaultAudioAndMIDI(ctx);
+		}, { once: true });
 
 
-		
+
+
 	}
 	updated() {
 		if (this.main) this.main.style.transform = `scale(${localStorage.getItem('zoom') ?? 100}%)`;

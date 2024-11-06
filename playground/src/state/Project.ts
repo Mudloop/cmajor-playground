@@ -18,6 +18,14 @@ export class Project {
 	constructor(public info: ProjectInfo, public volume: Volume) {
 		this.fs = new MagicFS(volume);
 		volume.watch(async (details) => {
+			if (!this.info.modified) {
+				console.trace(details);
+				this.info.modified = true;
+				volume.getMeta().then(async meta => {
+					await volume.setMeta({ ...meta, modified: true });
+					this.onChange.trigger();
+				});
+			}
 			for (let detail of details.operations) {
 				if (detail.type == 'volumeRemoved') document.location = document.location;
 				if (detail.type == 'unlink') this.closeFile(detail.id);

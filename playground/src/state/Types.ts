@@ -43,12 +43,13 @@ export type ProjectInfo = {
 	name: string;
 	id: string;
 	source?: ProjectSourceInfo;
-	modified?: number;
+	modified?: boolean;
 };
 export type ProjectTemplate = (name: string) => Promise<SourceFile[]> | SourceFile[];
 export type AppConfig = {
 	vfs: string;
 	builds: string;
+	examples: Record<string, string>;
 	templates: Record<string, ProjectTemplate>;
 	sources: Record<string, ProjectSource>;
 	builders: Builder[];

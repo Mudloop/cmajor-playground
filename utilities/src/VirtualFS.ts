@@ -73,6 +73,12 @@ type Watcher = { callback: WatcherCallback; path?: string; }
 export class Volume {
 
 	constructor(public vfs: VirtualFS, public id: string, public db: DB, private dbName: string) { }
+	getMeta = async () => this.db.read(['volumes'], async (accessors) => (await accessors.volumes.get(this.id)).meta);
+	setMeta = async (meta: any) => {
+		const volume = await this.db.read(['volumes'], async (accessors) => accessors.volumes.get(this.id));
+		volume.meta = meta;
+		return this.db.write(['volumes'], async (accessors) => accessors.volumes.set(volume));
+	};
 	private watchers: Set<Watcher> = new Set;
 	notifyWatchers = (detail: WatcherEvent) => this.watchers.forEach(watcher => {
 		detail = { ...detail, operations: watcher.path ? detail.operations.filter(op => (op as FileOperation).path?.startsWith(watcher.path ?? '')) : detail.operations };
@@ -261,7 +267,7 @@ export class Volume {
 		});
 		return zip;
 	}
-	
+
 	async cloneTo(targetVolume: Volume, srcPath: string = '', targetPath: string = '') {
 		srcPath = sanitizePath(srcPath);
 		if (srcPath != '') srcPath += '/';

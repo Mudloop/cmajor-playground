@@ -7,13 +7,14 @@ import { COMMON_STYLES } from './common-styles';
 import { keyed } from 'lit/directives/keyed';
 import { Modals } from './Modals';
 import { Trigger } from '@cmajor-playground/utilities';
-import { App, ZipLoader } from '../state';
+import { App, examples, ZipLoader } from '../state';
 export enum Layout { Horizontal = 'horizontal', Vertical = 'vertical' }
 import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
 import { CmajLanguageDefinition, FaustLanguageDefinition } from '../languages';
 import { defaultTemplate, uiTemplate } from '../templates';
 await App.init({
 	vfs: 'CmajPlayground', builds: 'builds',
+	examples,
 	templates: { default: defaultTemplate, ui: uiTemplate },
 	sources: { zip: ZipLoader },
 	builders: [FaustBuilder, CmajorBuilder],
@@ -21,8 +22,10 @@ await App.init({
 	serviceWorker: new URL('../../service.worker.js', import.meta.url)
 });
 @customElement('cmaj-playground') export class Playground extends LitElement {
+
 	@property({ type: String, attribute: true }) layout: Layout = Layout.Horizontal;
 	@property({ type: String }) size?: 'sm' | 'lg';
+	@property({ type: Boolean, attribute: 'menu-open' }) menuOpen = false;
 
 	@property({ type: Boolean, attribute: true }) enlarged: boolean = false;
 	embedded = window.top != window;
@@ -42,6 +45,9 @@ await App.init({
 			font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			font-size: 12px;
 		}
+		dialog {
+			color: inherit;
+		}
 		* {
 			box-sizing: border-box;
 			user-select: none;
@@ -49,6 +55,7 @@ await App.init({
 		.logo {
 			display: flex;
 			padding: 20px 8px;
+			padding-bottom: 4px;
 			gap: 8px;
 			position: relative;
 			width: fit-content;
@@ -147,7 +154,7 @@ await App.init({
 			height: 100%;
 		}
 		:host([size="sm"]) #sidebar {
-			position: fixed;
+			position: absolute;
 			z-index: 1000;
 			height: 100%;
 			background-color: #202223;
@@ -189,7 +196,14 @@ await App.init({
 		:host([size="sm"][menu-open]) #sidebar {
 			animation: sidebarOpen 0.2s ease-out;
 		}
-		
+		.sidebar-top {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			padding-bottom: 4px;
+			border-bottom: 1px solid #4e4e4e;
+		}
 		.sidebar-close {
 			display: flex;
 			justify-content: flex-end;
@@ -246,6 +260,7 @@ await App.init({
 			transition: all 0.2s ease .1s;
 		}
 	`;
+	hideProjectPanel: boolean = false;
 
 	connectedCallback(): void {
 		super.connectedCallback();
@@ -256,6 +271,8 @@ await App.init({
 	}
 
 	protected async firstUpdated(_changedProperties: PropertyValues) {
+		let qs = new URLSearchParams(location.search);
+		this.hideProjectPanel = qs.get('project-panel') == 'false';
 		App.vfs.watch((_) => {
 			this.onChange.trigger();
 			this.requestUpdate();
@@ -268,7 +285,14 @@ await App.init({
 		});
 		Modals.root = this.shadowRoot!;
 		this.setAttribute('layout', this.layout);
-		await this.loadProject();
+		let demo = qs.get('demo')
+		if (demo) {
+			const url = Object.entries(examples).find(([key, url]) => key == demo)?.[1];
+			const info = await App.importProject(import.meta.resolve(url!));
+			await this.loadProject(info!.id);
+		} else {
+			await this.loadProject();
+		}
 		this.requestUpdate();
 	}
 
@@ -276,6 +300,12 @@ await App.init({
 		if (_changedProperties.has('layout')) {
 			const splitter = this.shadowRoot!.getElementById('content-splitter') as LitElement;
 			splitter?.requestUpdate();
+		}
+		if (_changedProperties.has('menuOpen')) {
+			console.log('menu-open', this.menuOpen);
+			const dialog = this.shadowRoot!.querySelector('dialog') as HTMLDialogElement;
+			dialog?.close();
+			if (this.getAttribute('menu-open')) dialog?.showModal();
 		}
 	}
 
@@ -300,14 +330,25 @@ await App.init({
 	render = () => this.project ? this.renderUI() : html`<ui-loader></ui-loader>`;
 	private renderUI = () => html`
 		<dialog open id="sidebar">
-			<div class="sidebar-close">
-				<ui-icon icon="close" currentColors @click=${() => this.removeAttribute('menu-open')}></ui-icon>
+			<div class="sidebar-top">
+				${this.hideProjectPanel ? html`
+					<div class="project">
+						<h3>${this.project!.info.name}</h3>
+					</div>
+				` : html`
+				<div class="logo">
+					<img src="${new URL(logo, import.meta.url)}">
+					<span>BETA</span>
+				</div>
+				`}
+				<div class="sidebar-close">
+					<ui-icon icon="close" currentColors @click=${() => this.removeAttribute('menu-open')}></ui-icon>
+				</div>
 			</div>
-			<div class="logo">
-				<img src="${new URL(logo, import.meta.url)}">
-				<span>BETA</span>
-			</div>
-			<cmaj-projects .playground=${this}></cmaj-projects>
+			
+			${this.hideProjectPanel ? html`
+				${this.project?.info.modified ? html`<button @click=${() => this.resetProject()}>Reset</button>` : ''}
+			` : html`<cmaj-projects .playground=${this}></cmaj-projects>`}
 			${keyed(this.project!.info.id, html`<cmaj-explorer .playground=${this}></cmaj-explorer>`)}
 		</dialog>
 		<flex-splitter attach="prev"></flex-splitter>
@@ -338,4 +379,19 @@ await App.init({
 	`;
 	closeProject = () => this.loadProject();
 	close = async (editor: FileEditorBase) => (await this.project?.closeFile(editor.file.id)) && this.requestUpdate();
+	async resetProject() {
+		if (this.project!.info.modified) {
+			if (!await Modals.confirm('Reset project?', `Are you sure you want to reset '${this.project?.info.name}'?`)) return;
+		}
+		await App.deleteProject(this.project!.info.id);
+		let qs = new URLSearchParams(location.search);
+		let demo = qs.get('demo')
+		if (demo) {
+			const url = Object.entries(examples).find(([key, url]) => key == demo)?.[1];
+			const info = await App.importProject(import.meta.resolve(url!));
+			await this.loadProject(info!.id);
+		} else {
+			await this.loadProject();
+		}
+	}
 }

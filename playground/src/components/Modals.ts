@@ -138,7 +138,7 @@ abstract class Modal<T = void> extends LitElement {
 		const input = this.shadowRoot!.querySelector('input')!;
 		input.onkeydown = (e) => (e.key == 'Enter' || e.key == 'Return') && (input.value ?? '' != '') ? this.resolve(input.value ?? '') : undefined
 		input.oninput = this.validate;
-		input.focus();
+		input.setSelectionRange(0, input.value.split('.')[0].length);
 		this.validate();
 	}
 	validate = () => {

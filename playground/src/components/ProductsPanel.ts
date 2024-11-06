@@ -6,24 +6,24 @@ import naturalSort from "natural-sort";
 import { BuildManager } from "../state";
 import { audioFiles } from "../state/audioFiles";
 import { BuildInfo } from "@cmajor-playground/builders";
-let ctx = new AudioContext({ latencyHint: 0.00001 });
-ctx.suspend();
-(window as any).audioStarted = false;
-let iframeClicked = false;
-const startAudio = (e: Event, isIframe = false) => {
-	if (isIframe) iframeClicked = true;
-	if ((window as any).audioStarted) return;
-	(window as any).audioStarted = true;
-	if (iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
-		console.log('starting audio');
-		ctx.resume();
-	}
-	// if (audioEnabled) ctx.resume();
-}
-(window as any).ctx = ctx;
-document.addEventListener('keydown', startAudio, { once: true });
-document.addEventListener('pointerdown', startAudio, { once: true });
-document.addEventListener('touchstart', startAudio, { once: true });
+// let ctx = new AudioContext({ latencyHint: 0.00001 });
+// ctx.suspend();
+// (window as any).audioStarted = false;
+// let iframeClicked = false;
+// const startAudio = (e: Event, isIframe = false) => {
+// 	if (isIframe) iframeClicked = true;
+// 	if ((window as any).audioStarted) return;
+// 	(window as any).audioStarted = true;
+// 	if (iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
+// 		console.log('starting audio');
+// 		ctx.resume();
+// 	}
+// 	// if (audioEnabled) ctx.resume();
+// }
+// (window as any).ctx = ctx;
+// document.addEventListener('keydown', startAudio, { once: true });
+// document.addEventListener('pointerdown', startAudio, { once: true });
+// document.addEventListener('touchstart', startAudio, { once: true });
 // window.focus();
 @customElement('cmaj-products') export class ProductsPanel extends LitElement {
 
@@ -174,11 +174,11 @@ document.addEventListener('touchstart', startAudio, { once: true });
 		this.audioEnabled = enabled;
 		localStorage.setItem('audioEnabled', JSON.stringify(enabled));
 		const iframe = this.shadowRoot!.querySelector('iframe');
-		if (!enabled) ctx.suspend();
-		else {
-			console.log('resume');;
-			ctx.resume();
-		}
+		// if (!enabled) ctx.suspend();
+		// else {
+		// 	console.log('resume');;
+		// 	ctx.resume();
+		// }
 	}
 	@property({ type: Boolean }) audioEnabled = true;
 	render = () => html`
@@ -219,17 +219,17 @@ document.addEventListener('touchstart', startAudio, { once: true });
 		</div>
 	`;
 	async iframeLoaded(el: HTMLIFrameElement) {
-		if (!(window as any).audioStarted) el.contentDocument?.addEventListener('pointerdown', (e) => startAudio(e, true), { once: true });
+		// if (!(window as any).audioStarted) el.contentDocument?.addEventListener('pointerdown', (e) => startAudio(e, true), { once: true });
 		const init = (el.contentWindow as any).init;
 		if ((window as any).audioStarted) {
 			console.log('restarting audio');
-			ctx.close();
-			ctx = new AudioContext({ latencyHint: 0.00001 });
-			ctx.suspend();
+			// ctx.close();
+			// ctx = new AudioContext({ latencyHint: 0.00001 });
+			// ctx.suspend();
 		}
-		await init(this.selectedProduct, ctx, this.selectedProduct?.id);
-		if ((window as any).audioStarted && iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
-			ctx.resume();
-		}
+		await init(this.selectedProduct, null, this.selectedProduct?.id);
+		// if ((window as any).audioStarted && iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
+		// 	ctx.resume();
+		// }
 	}
 }

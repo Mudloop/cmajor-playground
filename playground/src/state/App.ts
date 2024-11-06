@@ -54,7 +54,12 @@ export class App {
 		files = !files || typeof files == 'string' ? await this.templates[files ?? 'default']?.(name) : files ?? [];
 		const id = generateUniqueId();
 		const projectVolume = await this.vfs.createVolume(id, { name, source, isProject: true });
-		files.forEach(file => file.type == 'dir' ? projectVolume.mkdir(file.path) : projectVolume.writeFile(file.path, file.content!));
+		// files.forEach(file => file.type == 'dir' ? projectVolume.mkdir(file.path) : projectVolume.writeFile(file.path, file.content!));
+		for (let file of files) {
+			if (file.type == 'dir') await projectVolume.mkdir(file.path);
+			else await projectVolume.writeFile(file.path, file.content!);
+		}
+
 		return await this.getProjectInfo(id);
 	}
 	static importProject = async (identifier: string) => {

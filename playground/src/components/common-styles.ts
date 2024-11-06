@@ -27,6 +27,17 @@ export const COMMON_STYLES = css`
 		align-items: center;
 		justify-content: space-between;
 	}
+	h3 {
+		text-transform: uppercase;
+		font-size: 12px;
+		padding: 5px 10px;
+		padding-right: 5px;
+		font-weight: 600;
+		letter-spacing: 2px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
 	
 	h1, h2, h3, h4, h5, h6 {
 		margin: 0;
@@ -114,6 +125,25 @@ export const COMMON_STYLES = css`
 		background-position: calc(100% - 2px) center;
 		background-size:18px;
 		outline: none !important;
+	}
+	button {
+		color: inherit;
+		background: #4e4e4e;
+		border: none;
+		outline: none !important;
+		cursor: pointer;
+		display: flex;
+		gap: 6px;
+		align-items: center;
+		justify-content: center;
+		padding: 6px 12px;
+		-webkit-appearance: none;
+		text-transform: uppercase;
+		font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+		font-weight: 600;
+		letter-spacing: 1px;
+		text-align: center;
+		font-size: 12px;
 	}
 	
 `;

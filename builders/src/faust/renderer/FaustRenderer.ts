@@ -30,10 +30,13 @@ import { BuildRenderer } from "../../cmaj/index.js";
 	// ctx: AudioContext = new AudioContext({ latencyHint: 0.00001 });
 	constructor(public meta: FaustDspMeta, public wasm: Uint8Array | string) { super(); }
 	init = async (ctx: AudioContext) => {
-		ctx.destination.channelInterpretation = "discrete";
+		ctx = new AudioContext();
 		ctx.suspend();
+		ctx.destination.channelInterpretation = "discrete";
 		this.wasm = base64ToBytes(this.wasm);
-		const module = new WebAssembly.Module(this.wasm);
+		// const module = new WebAssembly.Module(this.wasm);
+		const module = (await WebAssembly.instantiate (this.wasm, {})).module;
+		console.log(module);
 		const json = JSON.stringify(this.meta);
 		const generator = new FaustMonoDspGenerator();
 		const factory = { module, code: this.wasm, json, soundfiles: {} };
