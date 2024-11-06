@@ -783,6 +783,12 @@ export class LabelledControlHolder  extends ParameterControlBase
         .labelled-control-name {
             overflow: hidden;
             text-overflow: ellipsis;
+            opacity: .85;
+            text-transform: uppercase;
+		    font-size: 10px;
+            letter-spacing: .5px;
+            font-weight: 600;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
         }
 
         .labelled-control-value {
@@ -801,7 +807,12 @@ export class LabelledControlHolder  extends ParameterControlBase
         }
         .labelled-control:hover .labelled-control-value,
         .labelled-control:active .labelled-control-value {
-            opacity: 1;
+            opacity: .95;
+            text-transform: uppercase;
+		    font-size: 14px;
+            letter-spacing: .5px;
+            font-weight: 600;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
         }`;
     }
 }

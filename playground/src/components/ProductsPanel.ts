@@ -80,6 +80,8 @@ const startAudio = (e: Event) => {
 		main {
 			flex: 1;
 			display: flex;
+			background: #191b1b;
+			border-radius: 10px;
 		}
 		button {
 			cursor: pointer;
