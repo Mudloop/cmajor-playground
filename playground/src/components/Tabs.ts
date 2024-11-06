@@ -19,12 +19,10 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			min-height: 38px;
 			max-height: 38px;
 			overflow-y: hidden;
-			gap: 2px;
 			position: relative;
 			background-color: #202223;
 		}
 		.tab {
-			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
 			display: flex;
 			flex-direction: row;
 			cursor: pointer;
@@ -37,7 +35,7 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			z-index: 1;
 		}
 		.tab.active {
-			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088, inset 10px 0 20px 2px #ffffff16;
+			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088, inset 10px 0 20px 2px #ffffff16, 0 0 1px 1px #00000033;
 			background-color: #303436;
 			color: #fff;
 			border-bottom: 1px solid #e2b461;
