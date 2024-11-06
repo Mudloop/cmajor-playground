@@ -213,7 +213,7 @@ document.addEventListener('pointerdown', startAudio, { once: true });
 			ctx = new AudioContext({ latencyHint: 0.00001 });
 			ctx.suspend();
 		}
-		await init(this.selectedProduct, ctx);
+		await init(this.buildManager.project.volume.id, this.selectedProduct?.id, this.selectedProduct, ctx);
 		if ((window as any).audioStarted) {
 			console.log('resume');
 			ctx.resume();
