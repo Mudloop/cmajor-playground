@@ -132,6 +132,11 @@ const startAudio = (e: Event) => {
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
+		h4 span {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
 		:host([position=bottom]) .audio-player {
 			height: 100%;
 		}
@@ -194,7 +199,7 @@ const startAudio = (e: Event) => {
 					`}
 				</div>
 				<section>
-					<h4 style="justify-content:start;gap:4px;padding-left:2px;"><ui-icon icon="tabler-chevron-right" style="flex-grow:0; flex-shrink:0;"></ui-icon> Input Config (TODO)</h4>
+					<h4 style="justify-content:start;gap:4px;padding-left:2px;"><ui-icon icon="tabler-chevron-right" style="flex-grow:0; flex-shrink:0;"></ui-icon> <span>Input Config (TODO)</span></h4>
 				</section>
 				
 				
