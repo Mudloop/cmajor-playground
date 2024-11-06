@@ -30,13 +30,12 @@ import { BuildRenderer } from "../../cmaj/index.js";
 	// ctx: AudioContext = new AudioContext({ latencyHint: 0.00001 });
 	constructor(public meta: FaustDspMeta, public wasm: Uint8Array | string) { super(); }
 	init = async (contextManager: typeof ContextManager) => {
-		const ctx = new AudioContext();
+		const ctx = contextManager.newContext;
 		ctx.suspend();
 		ctx.destination.channelInterpretation = "discrete";
 		this.wasm = base64ToBytes(this.wasm);
 		// const module = new WebAssembly.Module(this.wasm);
 		const module = (await WebAssembly.instantiate (this.wasm, {})).module;
-		console.log(module);
 		const json = JSON.stringify(this.meta);
 		const generator = new FaustMonoDspGenerator();
 		const factory = { module, code: this.wasm, json, soundfiles: {} };
@@ -56,6 +55,7 @@ import { BuildRenderer } from "../../cmaj/index.js";
 		faustNode.setOutputParamHandler(faustUI.paramChangeByDSP.bind(faustUI));
 		root.style.minWidth = `${faustUI.minWidth}px`;
 		root.style.minHeight = `${faustUI.minHeight}px`;
+		await contextManager.activateContext();
 		faustNode.connect(ctx.destination);
 		
 	};

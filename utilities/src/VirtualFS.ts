@@ -35,6 +35,7 @@ export class VirtualFS {
 		globalThis.addEventListener('storage', (event: StorageEvent) => this.forwardWatcherEvents(event, `${dbName}/change`));
 	}
 	private forwardWatcherEvents(e: StorageEvent, key: string): any {
+		console.log(e, key);
 		if (e.key !== key || !e.newValue) return;
 		const value = JSON.parse(e.newValue) as WatcherEvent;
 		this.watchers.forEach(watcher => watcher(value));

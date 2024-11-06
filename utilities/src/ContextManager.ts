@@ -1,6 +1,8 @@
+import { Trigger } from "./Trigger";
+
 export class ContextManager {
 	static interval: any;
-
+	static muteChanged = new Trigger;
 	static {
 		globalThis.document?.addEventListener('pointerdown', () => this.userClicked(), { once: true });
 		globalThis.document?.addEventListener('keydown', () => this.userClicked(), { once: true });
@@ -8,14 +10,16 @@ export class ContextManager {
 	static userClicked() {
 		if (this.userHasClicked) return;
 		if (!this.currentContext) return;
-		console.log('User clicked');
 		this.userHasClicked = true;
 		this.checkContext();
 		for (let resolver of [...this.resolvers]) resolver();
 		this.resolvers.clear();
 	}
 	static get muted() { return localStorage.getItem('audio-muted') == 'true'; }
-	static set muted(muted: boolean) { localStorage.setItem('audio-muted', muted.toString()) }
+	static set muted(muted: boolean) {
+		localStorage.setItem('audio-muted', muted.toString())
+		this.muteChanged.trigger();
+	}
 	private static userHasClicked = false;
 	private static currentContext?: AudioContext;
 	private static activated: boolean = false;

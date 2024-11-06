@@ -37,6 +37,25 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			border: 0;
 			border-radius: 10px;
 		}
+		.muted {
+			position: relative;
+			filter: brightness(0.3);
+		}
+		.muted iframe {
+			opacity: .5;
+		}
+		.muted::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			--gradient-color-1: transparent;
+			--gradient-color-2: #9a9a9a;
+			--gradient-size: 10px;
+
+			background-image: linear-gradient(45deg, var(--gradient-color-1) 25%, var(--gradient-color-2) 25%, var(--gradient-color-2) 50%, var(--gradient-color-1) 50%, var(--gradient-color-1) 75%, var(--gradient-color-2) 75%, var(--gradient-color-2) 100%);
+			opacity: .2;
+			background-size: var(--gradient-size) var(--gradient-size);
+		}
 		header {
 			display: flex;
 			flex-direction: column;
@@ -134,12 +153,18 @@ import { ContextManager } from "@cmajor-playground/utilities";
 	selectedAudioFile?: string;
 	products: BuildInfo[] = [];
 	url = '';
+	connectedCallback(): void {
+		super.connectedCallback();
+		ContextManager.muteChanged.add(() => this.requestUpdate())
+	}
+	disconnectedCallback(): void {
+		ContextManager.muteChanged.remove(() => this.requestUpdate())
+	}
 	protected firstUpdated(_changedProperties: PropertyValues): void {
 		this.buildManager?.onChange.add(() => {
 			this.products = Object.values(this.buildManager.builds).sort((a, b) => a.type == 'cmajor' && b.type != 'cmajor' ? -1 : naturalSort()(a.path, b.path));
-			return this.requestUpdate();
+			this.requestUpdate();
 		});
-		this.audioEnabled = JSON.parse(localStorage.getItem('audioEnabled') ?? 'true');
 
 	}
 	protected updated(_changedProperties: PropertyValues): void {
@@ -152,17 +177,6 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			this.requestUpdate();
 		}
 	}
-	toggleAudio(enabled: boolean) {
-		this.audioEnabled = enabled;
-		localStorage.setItem('audioEnabled', JSON.stringify(enabled));
-		const iframe = this.shadowRoot!.querySelector('iframe');
-		// if (!enabled) ctx.suspend();
-		// else {
-		// 	console.log('resume');;
-		// 	ctx.resume();
-		// }
-	}
-	@property({ type: Boolean }) audioEnabled = true;
 	render = () => html`
 		<div class="container">
 			<header  @change=${() => this.requestUpdate()}>
@@ -185,8 +199,11 @@ import { ContextManager } from "@cmajor-playground/utilities";
 				
 			</header>
 			
-			<main>
-				${this.selectedProduct?.ready ? keyed(this.selectedProduct.hash, html`<iframe @load=${(e: Event) => this.iframeLoaded(e.target as HTMLIFrameElement)} src="${this.url}"></iframe>`) : html`<ui-loader></ui-loader>`}
+			<main class="${ContextManager.muted ? 'muted' : ''}" >
+				${this.selectedProduct?.ready ? keyed(this.selectedProduct.hash, html`
+					<iframe @load=${(e: Event) => this.iframeLoaded(e.target as HTMLIFrameElement)} src="${this.url}">
+				</iframe>`) :
+				html`<ui-loader></ui-loader>`}
 			</main>
 		</div>
 	`;
