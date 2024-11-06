@@ -109,7 +109,7 @@ class GenericPatchView extends HTMLElement
 
             :host {
                 --header-height: 2.5rem;
-                --foreground: #ffffff;
+                --foreground: #e2dfd8;
                 --background: #191b1b;
 
                 display: block;
