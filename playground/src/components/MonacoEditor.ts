@@ -18,7 +18,14 @@ import { FileEditorBase } from "./FileEditorBase";
 		}
 		#editor {
 			position: absolute;
+			inset: 6px;
+		}
+		#editor::after {
+			content: '';
+			position: absolute;
 			inset: 0;
+			
+			pointer-events: none;
 		}
 	`;
 	private monaco?: monaco.editor.IStandaloneCodeEditor;

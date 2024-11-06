@@ -19,6 +19,8 @@ import { App } from "../state";
 		}
 		
 		ul {
+			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
+			border-radius: 4px;
 			background-color: #33333366;
 			list-style: none;
 			padding: 0;

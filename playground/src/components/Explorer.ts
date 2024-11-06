@@ -46,12 +46,15 @@ const directory = directive(class extends AsyncDirective {
 			background-color: #202223;
 		}
 		section {
+			
 			flex: 1;
 			display: flex;
 			flex-direction: column;
 			position: relative;
 		}
 		section > ul {
+			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
+			border-radius: 4px;
 			padding: 0;
 			background-color: #33333366;
 			flex: 1;
@@ -130,6 +133,7 @@ const directory = directive(class extends AsyncDirective {
 			background-color: rgba(226, 180, 97, 0.25);
 		}
 		.highlighted>header {
+			box-shadow: inset 0 0 50px #ffffff22, inset 0 0 8px 1px #ffffff44;
 			background-color: rgba(226, 180, 97, 0.267) !important;
 			outline: 1px solid rgba(226, 180, 97, 0.29);
 			outline-offset: -1px;

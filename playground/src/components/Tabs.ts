@@ -24,6 +24,7 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			background-color: #202223;
 		}
 		.tab {
+			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
 			display: flex;
 			flex-direction: row;
 			cursor: pointer;

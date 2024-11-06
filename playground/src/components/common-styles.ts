@@ -17,6 +17,7 @@ export const COMMON_STYLES = css`
 		display: none !important;
 	}
 	h4 {
+		box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
 		text-transform: uppercase;
 		font-size: 10px;
 		padding: 5px 10px;

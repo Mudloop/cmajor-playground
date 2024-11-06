@@ -87,7 +87,8 @@ import { ContextManager } from "@cmajor-playground/utilities";
 		main {
 			flex: 1;
 			display: flex;
-			background: #191b1b;
+			background-color: #222424;
+			box-shadow: inset 0 0 50px #00000054, inset 0 0 8px 2px #00000020;
 			border-radius: 10px;
 		}
 		button {
