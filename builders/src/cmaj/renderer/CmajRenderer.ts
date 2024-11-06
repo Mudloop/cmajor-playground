@@ -67,6 +67,7 @@ import { BuildRenderer } from "../index.js";
 		if (state) this.connection.sendFullStoredState(state);
 		const main = this.shadowRoot!.appendChild(document.createElement('main'));
 		// main.style.transform = `scale(${localStorage.getItem('zoom') ?? 100}%)`;
+		// main.style.zoom = `65%`;
 		// main.style.transition = `all .25s ease`;
 		this.main = main;
 		const footer = this.shadowRoot!.appendChild(document.createElement('footer'));

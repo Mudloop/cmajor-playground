@@ -31,6 +31,11 @@ export const COMMON_STYLES = css`
 	h1, h2, h3, h4, h5, h6 {
 		margin: 0;
 	}
+	h1, h2, h3, h4, h5, h6, label {
+		user-select: none;
+		-webkit-user-select: none;
+		cursor: default;
+	}
 	section {
 		border-top: 1px solid #333;
 		border-bottom: 1px solid #333;

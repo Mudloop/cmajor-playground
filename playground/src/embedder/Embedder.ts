@@ -57,6 +57,7 @@ import { customElement } from "lit/decorators";
 						};
 					}, 10);
 					iframe.contentWindow?.postMessage({ type: 'enlarged' }, '*');
+					// iframe.requestFullscreen();
 					break;
 				case 'shrink':
 					dialog.removeAttribute('enlarged');

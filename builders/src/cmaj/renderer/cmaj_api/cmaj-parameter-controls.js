@@ -365,6 +365,9 @@ export class Knob  extends ParameterControlBase
 
         .knob-track-value {
             stroke: var(--knob-track-value-color);
+            stroke: #e2b461;
+            stroke-linecap: butt;
+            stroke-width: 4px;
         }
 
         .knob-dial {
