@@ -114,7 +114,7 @@ export class MagicFS {
 		}
 	}
 
-	private _findByPath = <T extends MagicFSEntry>(path: string) => this._lookup.values().find(entry => entry.path == path) as T;
+	private _findByPath = <T extends MagicFSEntry>(path: string) => [...this._lookup.values()].find(entry => entry.path == path) as T;
 	get = async <T extends MagicFSEntry>(path: string) => this.root.get<T>(sanitizePath(path));
 	rename = async (entry: MagicFSEntry, path: string) => {
 		await this._volume.rename(entry.path, path);
@@ -143,7 +143,7 @@ export class MagicFS {
 			}).sort((a, b) => a.isDir && b.isFile ? -1 : naturalSort()(a.name, b.name));
 		} catch (e) {
 			console.error(e);
-			
+
 			return [];
 		}
 	}

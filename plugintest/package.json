@@ -1,0 +1,15 @@
+{
+	"name": "@cmajor-playground/test",
+	"scripts": {
+		"build": "bun build --entrypoints ./src/cmaj/worker/cmajor.worker.ts ./src/faust/worker/faust.worker.ts --outdir ./generated --target browser --packages bundle --sourcemap=linked --entry-naming [name].[ext] --minify",
+		"watch": "bun run build --watch"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.1.12",
+		"tslib": "^2.7.0"
+	},
+	"dependencies": {
+		
+	},
+	"type": "module"
+}

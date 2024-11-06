@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"noEmitOnError": true,
+		"lib": [ "es2021", "dom", "DOM.Iterable" ],
+		"strict": true,
+		"esModuleInterop": false,
+		"allowSyntheticDefaultImports": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"outDir": "./artifacts",
+		"sourceMap": true,
+		"inlineSources": true,
+		"rootDir": "./",
+		"declaration": true,
+		"incremental": true,
+		"skipLibCheck": true,
+		"useDefineForClassFields": false,
+		"resolveJsonModule": true,
+		"paths": {
+			"*": [ "./node_modules/*" ]
+		}
+	},
+	"include": [ "./**/*.ts" ]
+}

@@ -13,12 +13,12 @@ const directory = directive(class extends AsyncDirective {
 	render = (dir: MagicDir, mapper: (node: MagicFSEntry) => void, cache: Map<string, any>) => {
 		if (Array.isArray(dir.children)) {
 			const val = dir.children.map(mapper);
-			cache.set(dir.path, val);
+			// cache.set(dir.path, val);
 			return val;
 		}
 		Promise.resolve(dir.children).then((result) => {
 			const val = result.map(mapper);
-			cache.set(dir.path, val);
+			// cache.set(dir.path, val);
 			return this.setValue(val);
 		}).catch(e => {
 			console.error(e);
@@ -172,6 +172,7 @@ const directory = directive(class extends AsyncDirective {
 		this.addEventListener('dragleave', () => this.dragLeave(''));
 	}
 	render = () => html`
+		${console.log(this.playground.project!.fs.root.children)}
 		<h4>
 			<span class="ellipsis">Files</span>
 			<nav>
@@ -183,8 +184,14 @@ const directory = directive(class extends AsyncDirective {
 		<section><ul class="${this.target == '' ? 'target' : ''}">${directory(this.playground.project!.fs.root, this.renderNode, this.cache)}</ul></section>
 	`;
 	protected firstUpdated(_changedProperties: PropertyValues): void {
-		this.playground.onChange.add(async () => this.requestUpdate());
-		this.playground.project!.onFilesChange.add(async () => this.requestUpdate());
+		this.playground.onChange.add(async () => {
+			console.log('Project changed');
+			return this.requestUpdate();
+		});
+		this.playground.project!.onFilesChange.add(async () => {
+			console.log('Files changed');
+			return this.requestUpdate();
+		});
 	}
 	async select(node: MagicFSEntry, e?: PointerEvent) {
 		if (e && e?.button !== 0) return;
@@ -302,7 +309,7 @@ const directory = directive(class extends AsyncDirective {
 		this.highlighted == node.id ? 'highlighted' : '',
 		this.target == node.path ? 'target' : ''
 	].join(' ')
-	renderNode: any = (node: MagicFSEntry) => keyed(node.path, html`
+	renderNode: any = (node: MagicFSEntry) => html`
 		<li
 			class="${this.getClasses(node)}"
 			draggable="true"
@@ -312,7 +319,7 @@ const directory = directive(class extends AsyncDirective {
 			@dragover=${node.isDir ? (e: DragEvent) => this.dragOver(e, node.path, node.id) : undefined}
 			@dragleave=${node.isDir ? () => this.dragLeave(node.path) : undefined}
 		>${node.isDir ? this.renderDir(node as MagicDir, this.expanded.has(node.id)) : this.renderFile(node as MagicFile)}</li>
-	`);
+	`;
 	renderFile = (file: MagicFile) => html`
 		<header @pointerdown=${(e: PointerEvent) => this.select(file, e)}>
 			<ui-file-icon .path=${file.name} width="16" height="16"></ui-file-icon>

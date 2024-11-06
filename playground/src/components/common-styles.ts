@@ -41,7 +41,7 @@ export const COMMON_STYLES = css`
 		
 		margin: 0;
 		overflow-y: auto;
-		height: 100%;
+		height: auto;
 		max-height: 400px;
 		color: #b3b0aa;
 		border: 1px solid #555;
