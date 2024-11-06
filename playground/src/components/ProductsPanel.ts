@@ -9,16 +9,21 @@ import { BuildInfo } from "@cmajor-playground/builders";
 let ctx = new AudioContext({ latencyHint: 0.00001 });
 ctx.suspend();
 (window as any).audioStarted = false;
-const startAudio = (e: Event) => {
+let iframeClicked = false;
+const startAudio = (e: Event, isIframe = false) => {
+	if (isIframe) iframeClicked = true;
 	if ((window as any).audioStarted) return;
 	(window as any).audioStarted = true;
-	if (JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) ctx.resume();
+	if (iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
+		console.log('starting audio');
+		ctx.resume();
+	}
 	// if (audioEnabled) ctx.resume();
 }
 (window as any).ctx = ctx;
-// document.addEventListener('keydown', startAudio, { once: true });
-// document.addEventListener('pointerdown', startAudio, { once: true });
-// document.addEventListener('touchstart', startAudio, { once: true });
+document.addEventListener('keydown', startAudio, { once: true });
+document.addEventListener('pointerdown', startAudio, { once: true });
+document.addEventListener('touchstart', startAudio, { once: true });
 // window.focus();
 @customElement('cmaj-products') export class ProductsPanel extends LitElement {
 
@@ -149,7 +154,6 @@ const startAudio = (e: Event) => {
 	url = '';
 	protected firstUpdated(_changedProperties: PropertyValues): void {
 		this.buildManager?.onChange.add(() => {
-			console.log('on change');
 			this.products = Object.values(this.buildManager.builds).sort((a, b) => a.type == 'cmajor' && b.type != 'cmajor' ? -1 : naturalSort()(a.path, b.path));
 			return this.requestUpdate();
 		});
@@ -163,7 +167,6 @@ const startAudio = (e: Event) => {
 			this.selectedProduct = product;
 			// this.url = this.selectedProduct ? `/$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/?${this.selectedProduct?.hash}` : '';
 			this.url = this.selectedProduct ? `./$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/` : '';
-			console.log(this.url);
 			this.requestUpdate();
 		}
 	}
@@ -172,7 +175,10 @@ const startAudio = (e: Event) => {
 		localStorage.setItem('audioEnabled', JSON.stringify(enabled));
 		const iframe = this.shadowRoot!.querySelector('iframe');
 		if (!enabled) ctx.suspend();
-		else ctx.resume();
+		else {
+			console.log('resume');;
+			ctx.resume();
+		}
 	}
 	@property({ type: Boolean }) audioEnabled = true;
 	render = () => html`
@@ -213,16 +219,16 @@ const startAudio = (e: Event) => {
 		</div>
 	`;
 	async iframeLoaded(el: HTMLIFrameElement) {
-		if (!(window as any).audioStarted) el.contentDocument?.addEventListener('pointerdown', startAudio, { once: true });
+		if (!(window as any).audioStarted) el.contentDocument?.addEventListener('pointerdown', (e) => startAudio(e, true), { once: true });
 		const init = (el.contentWindow as any).init;
 		if ((window as any).audioStarted) {
+			console.log('restarting audio');
 			ctx.close();
 			ctx = new AudioContext({ latencyHint: 0.00001 });
 			ctx.suspend();
 		}
 		await init(this.selectedProduct, ctx, this.selectedProduct?.id);
-		if ((window as any).audioStarted) {
-			console.log('resume');
+		if ((window as any).audioStarted && iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
 			ctx.resume();
 		}
 	}

@@ -42,7 +42,6 @@ import { customElement } from "lit/decorators";
 		const iframe = this.shadowRoot!.querySelector('iframe')!;
 		const dialog = this.shadowRoot!.querySelector('dialog')!;
 		iframe.contentWindow?.addEventListener('message', (e) => {
-			console.log('Got request', e.data);
 			switch (e.data.type) {
 				case 'enlarge':
 					if (dialog.hasAttribute('enlarged')) return;
@@ -51,7 +50,6 @@ import { customElement } from "lit/decorators";
 					dialog.setAttribute('enlarged', '');
 					setTimeout(() => {
 						dialog.onclose = () => {
-							console.log('Closing dialog');
 							iframe.contentWindow?.postMessage({ type: 'shrunken' }, '*');
 							dialog.onclose = null;
 						};

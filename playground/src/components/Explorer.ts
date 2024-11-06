@@ -172,7 +172,6 @@ const directory = directive(class extends AsyncDirective {
 		this.addEventListener('dragleave', () => this.dragLeave(''));
 	}
 	render = () => html`
-		${console.log(this.playground.project!.fs.root.children)}
 		<h4>
 			<span class="ellipsis">Files</span>
 			<nav>
@@ -185,11 +184,9 @@ const directory = directive(class extends AsyncDirective {
 	`;
 	protected firstUpdated(_changedProperties: PropertyValues): void {
 		this.playground.onChange.add(async () => {
-			console.log('Project changed');
 			return this.requestUpdate();
 		});
 		this.playground.project!.onFilesChange.add(async () => {
-			console.log('Files changed');
 			return this.requestUpdate();
 		});
 	}
@@ -345,7 +342,6 @@ const directory = directive(class extends AsyncDirective {
 		e.stopPropagation();
 		const name = await Modals.prompt('Enter name', `Enter a new name for the new ${file.isDir ? 'directory' : 'file'}`, file.name);
 		if (!name) return;
-		// console.log(sanitizePath(file.path + '/../' + name));
 		await file.rename(sanitizePath(file.path + '/../' + name));
 		this.requestUpdate();
 	}

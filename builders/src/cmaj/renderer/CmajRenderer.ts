@@ -80,7 +80,7 @@ import { BuildRenderer } from "../index.js";
 			keyboard.style.display = 'flex';
 			footer.appendChild(keyboard);
 		}
-		while (!(window.parent as any).audioStarted) {
+		while (ctx.state === 'suspended') {
 			await new Promise(r => setTimeout(r, 100));
 		}
 		connection.connectDefaultAudioAndMIDI(ctx);

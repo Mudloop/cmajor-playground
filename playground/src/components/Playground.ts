@@ -299,7 +299,6 @@ await App.init({
 	}
 	render = () => this.project ? this.renderUI() : html`<ui-loader></ui-loader>`;
 	private renderUI = () => html`
-		${console.log('render', this.enlarged)}
 		<dialog open id="sidebar">
 			<div class="sidebar-close">
 				<ui-icon icon="close" currentColors @click=${() => this.removeAttribute('menu-open')}></ui-icon>

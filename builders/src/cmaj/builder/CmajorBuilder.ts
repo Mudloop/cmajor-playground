@@ -27,12 +27,21 @@ class FaustPreprocessor extends Preprocessor {
 		return await work(faustWorkerSrc, { content, faustModuleUrl, filename, target: 'cmajor' });
 	}
 }
+
+class JSPreprocessor extends Preprocessor {
+	protected process = async (files: FilesWithHashes) => Object.fromEntries(await Promise.all(Object.entries(files).map(async ([path, { content, hash }]) => {
+		if (!path.endsWith('.js')) return [path, { content, hash }];
+		return [path + '.cmajor', { content: await this.compile(content as string), hash }];
+	})))
+	private compile = async (content: string): Promise<string> => await new Function('obj', `return (async () => { ${content} })(obj);`)({})
+}
 export class CmajorBuilder {
 	public static type = 'cmajor';
 	private static cache: Record<string, any> = {};
-	public static preprocessors: Preprocessor[] = [new FaustPreprocessor()];
+	public static preprocessors: Preprocessor[] = [new FaustPreprocessor(), new JSPreprocessor()];
 	public static test = (path: string) => path.endsWith('.cmajorpatch');
 	static async update(fs: MagicFS, manifestFile: MagicFile, setDirty: (diry: boolean) => {}) {
+		console.log('Building', manifestFile.path);
 		const manifestPath = manifestFile.path;
 		const manifest = JSON.parse((await manifestFile.content as string)) as Manifest;
 		let manifestParentPath = sanitizePath(manifestPath + '/../');

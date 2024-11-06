@@ -91,7 +91,6 @@ export class Volume {
 	async readBinary(inputPath: string): Promise<Uint8Array> { return this.read(inputPath, 'binary'); }
 	private async read<T extends string | Uint8Array = Uint8Array>(inputPath: string, encoding: 'string' | 'binary'): Promise<T> {
 		const path = sanitizePath(inputPath);
-		console.log('Reading', path);
 		const ret = await this.db.read(['entries', 'content'], async (accessors) => {
 			const file = await accessors.entries.findOne('[volume,path]', [this.id, path]);
 			if (!file || file.type !== 'file') throw new Error('File not found: ' + path);
