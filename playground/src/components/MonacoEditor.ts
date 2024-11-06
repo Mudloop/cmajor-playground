@@ -45,7 +45,7 @@ import { FileEditorBase } from "./FileEditorBase";
 		this.monaco = monaco.editor.create(editorContainer, {
 			value: content,
 			language: lang,
-			fontSize: 10,
+			fontSize: 10.5,
 			theme: 'vs-dark',
 			tabSize: 4,
 			insertSpaces: false,
