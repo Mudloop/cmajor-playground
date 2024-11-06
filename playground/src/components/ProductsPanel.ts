@@ -213,7 +213,7 @@ const startAudio = (e: Event) => {
 			ctx = new AudioContext({ latencyHint: 0.00001 });
 			ctx.suspend();
 		}
-		await init(this.buildManager.project.volume.id, this.selectedProduct?.id, this.selectedProduct, ctx);
+		await init(this.selectedProduct, ctx, this.selectedProduct?.id);
 		if ((window as any).audioStarted) {
 			console.log('resume');
 			ctx.resume();

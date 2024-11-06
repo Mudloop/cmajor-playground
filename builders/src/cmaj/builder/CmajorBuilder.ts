@@ -51,8 +51,9 @@ export class CmajorBuilder {
 			return this.cache[hash];
 		}
 		setDirty(true);
+		const result = await work(worker, { manifestPath: manifestPath.split('/').at(-1), files: { ...extras, ...sources }, manifest });
 		return this.cache[hash] = {
-			build: await work(worker, { manifestPath: manifestPath.split('/').at(-1), files: { ...extras, ...sources }, manifest }),
+			build: { ...result as any, manifest },
 			hash
 		}
 	}
