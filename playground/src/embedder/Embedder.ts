@@ -34,7 +34,7 @@ import { customElement } from "lit/decorators";
 	`;
 	render = () => html`
 		<dialog open>
-			<iframe src="/"></iframe>
+			<iframe src="./"></iframe>
 		</dialog>
 	`;
 	protected firstUpdated(_changedProperties: PropertyValues): void {

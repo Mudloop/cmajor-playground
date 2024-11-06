@@ -30,9 +30,9 @@ var p=function(d,w,f,x){var g=arguments.length,A=g<3?w:x===null?x=Object.getOwnP
 		}
 	`;render=()=>Wd`
 		<dialog open>
-			<iframe src="/"></iframe>
+			<iframe src="./"></iframe>
 		</dialog>
 	`;firstUpdated(d){super.firstUpdated(d);const w=this.shadowRoot.querySelector("iframe"),f=this.shadowRoot.querySelector("dialog");w.contentWindow?.addEventListener("message",(x)=>{switch(console.log("Got request",x.data),x.data.type){case"enlarge":if(f.hasAttribute("enlarged"))return;f.close(),f.showModal(),f.setAttribute("enlarged",""),setTimeout(()=>{f.onclose=()=>{console.log("Closing dialog"),w.contentWindow?.postMessage({type:"shrunken"},"*"),f.onclose=null}},10),w.contentWindow?.postMessage({type:"enlarged"},"*");break;case"shrink":f.removeAttribute("enlarged"),f.close(),f.show();break}})}}j=p([Pd("cmaj-embedder")],j);export{j as CmajEmbedder};
 
-//# debugId=C11A2B8CB601DC1564756E2164756E21
+//# debugId=2539DC91D80BAA1564756E2164756E21
 //# sourceMappingURL=embedder.js.map
