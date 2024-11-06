@@ -56,13 +56,13 @@ const directory = directive(class extends AsyncDirective {
 			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
 			border-radius: 4px;
 			padding: 0;
-			background-color: #33333366;
+			background-color: #353637d6;
 			flex: 1;
 			position: absolute;
-			top: 4px;
-			width: calc(100% - 8px);
-			left: 4px;
-			max-height: calc(100% - 8px);
+			top: 6px;
+			width: calc(100% - 12px);
+			left: 6px;
+			max-height: calc(100% - 12px);
 
 			overflow-y: auto;
 		}
