@@ -86,6 +86,14 @@ await App.init({
 			flex-direction: row;
 			justify-content: space-between;
 			align-items: center;
+			position: relative;
+		}
+		header::after {
+			content: '';
+			position: absolute;
+			border-bottom: 1px solid #4e4e4e;
+			inset: 0;
+			pointer-events: none;
 		}
 		.actions {
 			display: flex;

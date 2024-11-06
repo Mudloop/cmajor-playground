@@ -21,7 +21,6 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			overflow-y: hidden;
 			gap: 2px;
 			position: relative;
-			padding-top: 8px;
 			background-color: #202223;
 		}
 		.tab {
@@ -33,17 +32,17 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			padding: 0px 8px;
 			gap: 4px;
 			position: relative;
-			transition: background-color 0.2s ease;
+			transition: all 0.2s ease;
+			z-index: 1;
 		}
 		.tab.active {
-			background-color: #232627;
+			background-color: #303436;
 			color: #fff;
-			border-top: 1px solid #e2b461;
+			border-bottom: 1px solid #e2b461;
 			position: relative;
-			top: 1px;
 		}
 		.tab:not(.active) {
-			border-top: 1px solid transparent;
+			border-bottom: 1px solid transparent;
 			padding-top: 1px;
 		}
 		.icon {
