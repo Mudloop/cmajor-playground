@@ -7,16 +7,41 @@ import { createPatchViewHolder } from './cmaj_api/cmaj-patch-view.js';
 import { ContextManager, TaskManager } from "@cmajor-playground/utilities";
 import { BuildRenderer } from "../index.js";
 @customElement('cmaj-renderer') export class CmajRenderer extends LitElement implements BuildRenderer {
+
 	static styles = css`
 		:host {
 			display: flex;
 			flex-direction: column;
 			width: 100%;
 			height: 100%;
+			--width: 1143px;
+			--aspect-ratio: 1143 / 537;
+			--scale: 1;
+			--left: 0;
+			--top: 0;
+			gap: 4px;
 		}
 		main {
 			flex: 1;
 			position: relative;
+		}
+		.container {
+			flex: 1;
+		}
+		main.sized {
+			width: var(--width);
+			position: absolute;
+			object-fit: contain;
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: auto;
+			margin-bottom: auto;
+			aspect-ratio: var(--aspect-ratio);
+			transform: scale(var(--scale));
+			flex: 0;
+			transform-origin: 0 0;
+			left: var(--left);
+			top: var(--top);
 		}
 		main>* {
 			position: absolute !important;
@@ -47,7 +72,6 @@ import { BuildRenderer } from "../index.js";
 	}
 	init = async (contextManager: typeof ContextManager) => {
 		const ctx = contextManager.newContext;
-
 		const connection = this.connection = new helpers.AudioWorkletPatchConnection(this.manifest);
 		connection.addAllParameterListener(async () => {
 			const state = await TaskManager.addTask(this, () => new Promise((resolve) => this.connection?.requestFullStoredState((state: any) => resolve(state))))
@@ -66,11 +90,23 @@ import { BuildRenderer } from "../index.js";
 
 		const state = JSON.parse(localStorage.getItem('state-' + this.fileId) ?? 'null');
 		if (state) this.connection.sendFullStoredState(state);
-		const main = this.shadowRoot!.appendChild(document.createElement('main'));
+		const container = this.shadowRoot!.appendChild(document.createElement('div'));
+		container.classList.add('container');
+		const main = container.appendChild(document.createElement('main'));
 		this.main = main;
 		const footer = this.shadowRoot!.appendChild(document.createElement('footer'));
 		this.shadowRoot!.append(footer);
 		main!.appendChild((await createPatchViewHolder(connection)));
+		if (this.manifest.view?.width && this.manifest.view?.height) {
+			main.classList.add('sized');
+			main.style.setProperty('--width', this.manifest.view.width + 'px');
+			main.style.setProperty('--aspect-ratio', this.manifest.view.width + ' / ' + this.manifest.view.height);
+			const observer: ResizeObserver = new ResizeObserver(() => this.resize(main, this.manifest.view!.width!, this.manifest.view!.height!));
+			window.addEventListener('resize', () => this.resize(main, this.manifest.view!.width!, this.manifest.view!.height!));
+			observer.observe(main);
+		} else {
+			document.body.style.zoom = '85%;'
+		}
 		const midiInputEndpointID = this.getMIDIInputEndpointID(connection);
 		if (midiInputEndpointID) {
 			const keyboard = new PianoKeyboard();
@@ -80,14 +116,14 @@ import { BuildRenderer } from "../index.js";
 		}
 		await contextManager.activateContext();
 		connection.connectDefaultAudioAndMIDI(ctx);
-		// document.addEventListener('pointerdown', () => {
-		// 	ctx.resume();
-		// 	connection.connectDefaultAudioAndMIDI(ctx);
-		// }, { once: true });
 
-
-
-
+	}
+	resize(main: HTMLElement, width: number, height: number): any {
+		const rect = main.parentElement!.getBoundingClientRect();
+		const scale = Math.min(rect.width / width, rect.height / height);
+		main.style.setProperty('--scale', scale.toString());
+		main.style.setProperty('--left', (rect.width - width * scale) / 2 + 'px');
+		main.style.setProperty('--top', (rect.height - height * scale) / 2 + 'px');
 	}
 	updated() {
 		if (this.main) this.main.style.transform = `scale(${localStorage.getItem('zoom') ?? 100}%)`;
