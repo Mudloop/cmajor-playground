@@ -11,7 +11,7 @@ class PatchService {
 	}
 	static handleFetch(event: FetchEvent) {
 		const url = new URL(event.request.url).href.replace(loc, '');
-		// console.log('url', url);
+		// console.log('service worker url:', url);
 		url.startsWith('$') ? event.respondWith(this.serveFromVolume(url.substring(1))) : undefined
 	}
 	static async serveFromVolume(url: string): Promise<Response> {

@@ -155,7 +155,7 @@ document.addEventListener('pointerdown', startAudio, { once: true });
 		if (product != this.selectedProduct) {
 			this.selectedProduct = product;
 			// this.url = this.selectedProduct ? `/$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/?${this.selectedProduct?.hash}` : '';
-			this.url = this.selectedProduct ? `/$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/` : '';
+			this.url = this.selectedProduct ? `./$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/` : '';
 			console.log(this.url);
 			this.requestUpdate();
 		}
