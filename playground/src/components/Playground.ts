@@ -167,6 +167,16 @@ await App.init({
 			padding: 6px;
 			border-right: 1px solid #ffffff22;
 		}
+		:host([size="sm"]) #sidebar::before {
+			content: '';
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: -1;
+			background: #00000017;
+		}
 		:host([embedded]:not([enlarged])) .logo {
 			display: none;
 		}
@@ -187,11 +197,10 @@ await App.init({
 			outline: none !important;
 		}
 		:host([size="sm"]:not([menu-open])) #sidebar { transform: scaleX(0) translateX(-50%); }
-		:host([size="md"][preview-mode])
-			#sidebar {
-				transform: scaleX(0) translateX(-50%);
-				position: absolute;
-			}
+		:host([size="md"][preview-mode]) #sidebar {
+			transform: scaleX(0) translateX(-50%);
+			position: absolute;
+		}
 		@keyframes sidebarOpen {
 			0% {
 				transform: scaleX(0) translateX(-50%);
