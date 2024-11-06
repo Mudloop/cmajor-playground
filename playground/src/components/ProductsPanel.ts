@@ -16,8 +16,8 @@ const startAudio = (e: Event) => {
 	// if (audioEnabled) ctx.resume();
 }
 (window as any).ctx = ctx;
-document.addEventListener('keydown', startAudio, { once: true });
-document.addEventListener('pointerdown', startAudio, { once: true });
+// document.addEventListener('keydown', startAudio, { once: true });
+// document.addEventListener('pointerdown', startAudio, { once: true });
 // document.addEventListener('touchstart', startAudio, { once: true });
 // window.focus();
 @customElement('cmaj-products') export class ProductsPanel extends LitElement {
