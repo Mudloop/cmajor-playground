@@ -20,6 +20,7 @@ import { BuildRenderer } from "../index.js";
 			--left: 0;
 			--top: 0;
 			gap: 4px;
+			padding: 4px;
 		}
 		main {
 			flex: 1;
@@ -27,6 +28,7 @@ import { BuildRenderer } from "../index.js";
 		}
 		.container {
 			flex: 1;
+			display: flex;
 		}
 		main.sized {
 			width: var(--width);
