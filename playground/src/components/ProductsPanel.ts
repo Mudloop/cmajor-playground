@@ -39,12 +39,13 @@ import { ContextManager } from "@cmajor-playground/utilities";
 		}
 		.muted {
 			position: relative;
-			filter: brightness(0.3);
+			filter: brightness(0.7);
 		}
 		.muted iframe {
-			opacity: .5;
+			opacity: .7;
 		}
 		.muted::after {
+			pointer-events: none;
 			content: '';
 			position: absolute;
 			inset: 0;
@@ -53,7 +54,7 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			--gradient-size: 10px;
 
 			background-image: linear-gradient(45deg, var(--gradient-color-1) 25%, var(--gradient-color-2) 25%, var(--gradient-color-2) 50%, var(--gradient-color-1) 50%, var(--gradient-color-1) 75%, var(--gradient-color-2) 75%, var(--gradient-color-2) 100%);
-			opacity: .2;
+			opacity: .1;
 			background-size: var(--gradient-size) var(--gradient-size);
 		}
 		header {
