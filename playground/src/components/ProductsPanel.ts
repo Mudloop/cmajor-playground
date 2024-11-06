@@ -6,25 +6,7 @@ import naturalSort from "natural-sort";
 import { BuildManager } from "../state";
 import { audioFiles } from "../state/audioFiles";
 import { BuildInfo } from "@cmajor-playground/builders";
-// let ctx = new AudioContext({ latencyHint: 0.00001 });
-// ctx.suspend();
-// (window as any).audioStarted = false;
-// let iframeClicked = false;
-// const startAudio = (e: Event, isIframe = false) => {
-// 	if (isIframe) iframeClicked = true;
-// 	if ((window as any).audioStarted) return;
-// 	(window as any).audioStarted = true;
-// 	if (iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
-// 		console.log('starting audio');
-// 		ctx.resume();
-// 	}
-// 	// if (audioEnabled) ctx.resume();
-// }
-// (window as any).ctx = ctx;
-// document.addEventListener('keydown', startAudio, { once: true });
-// document.addEventListener('pointerdown', startAudio, { once: true });
-// document.addEventListener('touchstart', startAudio, { once: true });
-// window.focus();
+import { ContextManager } from "@cmajor-playground/utilities";
 @customElement('cmaj-products') export class ProductsPanel extends LitElement {
 
 	@property({ type: Object }) buildManager!: BuildManager;
@@ -165,7 +147,7 @@ import { BuildInfo } from "@cmajor-playground/builders";
 		const product = this.products.find(product => product.path == productSelect.value);
 		if (product != this.selectedProduct) {
 			this.selectedProduct = product;
-			// this.url = this.selectedProduct ? `/$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/?${this.selectedProduct?.hash}` : '';
+			ContextManager.reset();
 			this.url = this.selectedProduct ? `./$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/` : '';
 			this.requestUpdate();
 		}
@@ -194,17 +176,7 @@ import { BuildInfo } from "@cmajor-playground/builders";
 						<ui-icon icon="player-play"></ui-icon>
 						<div class="dropzone">Drop audio file here</div>
 					</div>
-					
 					${false && !this.selectedProduct?.ready ? html`<ui-loader size="30"></ui-loader>` : ''}
-					${this.audioEnabled ? html`
-						<button class="on" @click=${() => this.toggleAudio(false)}>
-							<ui-icon width="18" height="18" currentColors icon="unmuted"></ui-icon>
-						</button>
-					` : html`
-						<button class="off" @click=${() => this.toggleAudio(true)}>
-							<ui-icon width="18" height="18" currentColors icon="muted"></ui-icon>
-						</button>
-					`}
 				</div>
 				<section>
 					<h4 style="justify-content:start;gap:4px;padding-left:2px;"><ui-icon icon="tabler-chevron-right" style="flex-grow:0; flex-shrink:0;"></ui-icon> <span>Input Config (TODO)</span></h4>
@@ -219,17 +191,8 @@ import { BuildInfo } from "@cmajor-playground/builders";
 		</div>
 	`;
 	async iframeLoaded(el: HTMLIFrameElement) {
-		// if (!(window as any).audioStarted) el.contentDocument?.addEventListener('pointerdown', (e) => startAudio(e, true), { once: true });
+		el.contentDocument?.addEventListener('pointerdown', () => ContextManager.userClicked(), { once: true });
 		const init = (el.contentWindow as any).init;
-		if ((window as any).audioStarted) {
-			console.log('restarting audio');
-			// ctx.close();
-			// ctx = new AudioContext({ latencyHint: 0.00001 });
-			// ctx.suspend();
-		}
-		await init(this.selectedProduct, null, this.selectedProduct?.id);
-		// if ((window as any).audioStarted && iframeClicked && JSON.parse(localStorage.getItem('audioEnabled') ?? 'true')) {
-		// 	ctx.resume();
-		// }
+		await init(this.selectedProduct, ContextManager, this.selectedProduct?.id);
 	}
 }

@@ -4,7 +4,7 @@ import PianoKeyboard from './cmaj_api/cmaj-piano-keyboard.js';
 import { Manifest } from "../types.js";
 import * as helpers from './cmaj_api/cmaj-audio-worklet-helper.js'
 import { createPatchViewHolder } from './cmaj_api/cmaj-patch-view.js';
-import { TaskManager } from "@cmajor-playground/utilities";
+import { ContextManager, TaskManager } from "@cmajor-playground/utilities";
 import { BuildRenderer } from "../index.js";
 @customElement('cmaj-renderer') export class CmajRenderer extends LitElement implements BuildRenderer {
 	static styles = css`
@@ -46,9 +46,8 @@ import { BuildRenderer } from "../index.js";
 		if (!window.customElements.get('cmaj-panel-piano-keyboard')) customElements.define('cmaj-panel-piano-keyboard', PianoKeyboard);
 		// console.log(code);
 	}
-	init = async (ctx: AudioContext) => {
-		ctx = new AudioContext();
-		ctx.suspend();
+	init = async (contextManager: typeof ContextManager) => {
+		const ctx = contextManager.newContext;
 
 		const connection = this.connection = new helpers.AudioWorkletPatchConnection(this.manifest);
 		connection.addAllParameterListener(async () => {
@@ -83,13 +82,12 @@ import { BuildRenderer } from "../index.js";
 			keyboard.style.display = 'flex';
 			footer.appendChild(keyboard);
 		}
-		// while (ctx.state === 'suspended') {
-		// 	await new Promise(r => setTimeout(r, 100));
-		// }
-		document.addEventListener('pointerdown', () => {
-			ctx.resume();
-			connection.connectDefaultAudioAndMIDI(ctx);
-		}, { once: true });
+		await contextManager.activateContext();
+		connection.connectDefaultAudioAndMIDI(ctx);
+		// document.addEventListener('pointerdown', () => {
+		// 	ctx.resume();
+		// 	connection.connectDefaultAudioAndMIDI(ctx);
+		// }, { once: true });
 
 
 

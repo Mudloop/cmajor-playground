@@ -11,3 +11,4 @@ export * from './VirtualFS';
 export * from './TaskManager';
 export * from './sanitizePath';
 export * from './base64ToBytes';
+export * from './ContextManager';

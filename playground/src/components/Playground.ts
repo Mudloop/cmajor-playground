@@ -6,7 +6,7 @@ import { FileEditorBase } from './FileEditorBase';
 import { COMMON_STYLES } from './common-styles';
 import { keyed } from 'lit/directives/keyed';
 import { Modals } from './Modals';
-import { Trigger } from '@cmajor-playground/utilities';
+import { ContextManager, Trigger } from '@cmajor-playground/utilities';
 import { App, examples, ZipLoader } from '../state';
 export enum Layout { Horizontal = 'horizontal', Vertical = 'vertical' }
 import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
@@ -378,9 +378,9 @@ await App.init({
 					<ui-icon width=20 height=20 id="edit" icon="edit" currentColors @click=${() => this.removeAttribute('preview-mode')}></ui-icon>
 					<ui-icon width=20 height=20 id="play" icon="play" currentColors @click=${() => this.setAttribute('preview-mode', '')}></ui-icon>
 					${this.embedded && this.enlarged ? html`<ui-icon width=20 height=20 currentColors class="selected" icon="shrink" @click=${(e: any) => this.sendRequest('shrink')}></ui-icon>` : ''}
-					<ui-icon width="20" height="20" currentColors icon="unmuted"></ui-icon>
 					<ui-icon width=20 height=20 id="settings" icon="tabler-settings-2" currentStroke @click=${() => this.setAttribute('preview-mode', '')}></ui-icon>
 					${this.embedded && !this.enlarged ? html`<ui-icon width=20 height=20 currentColors icon="enlarge" @click=${(e: any) => this.sendRequest('enlarge')}></ui-icon>` : ''}
+					<ui-icon class="${ContextManager.muted ? 'off' : 'selected' }" width="20" height="20" currentColors icon="${ContextManager.muted? 'muted' : 'unmuted'}" @click=${()=>this.toggleMute()}></ui-icon>
 				</div>
 			</header>
 			<div id="content-split">
@@ -395,6 +395,11 @@ await App.init({
 	`;
 	closeProject = () => this.loadProject();
 	close = async (editor: FileEditorBase) => (await this.project?.closeFile(editor.file.id)) && this.requestUpdate();
+	private toggleMute() {
+		ContextManager.toggleMute();
+		this.requestUpdate();
+	}
+
 	async resetProject() {
 		if (this.project!.info.modified) {
 			if (!await Modals.confirm('Reset project?', `Are you sure you want to reset '${this.project?.info.name}'?`)) return;

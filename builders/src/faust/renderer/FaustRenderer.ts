@@ -1,7 +1,7 @@
 import { css, LitElement, PropertyValues, unsafeCSS } from "lit";
 import { customElement } from "lit/decorators";
 import { FaustDspMeta, FaustMonoDspGenerator } from "@grame/faustwasm";
-import { base64ToBytes } from "@cmajor-playground/utilities";
+import { base64ToBytes, ContextManager } from "@cmajor-playground/utilities";
 import { FaustUI } from "./faust-ui/index.js";
 import styles from './faust-ui/index.css' with {type: 'text'}
 import { BuildRenderer } from "../../cmaj/index.js";
@@ -29,8 +29,8 @@ import { BuildRenderer } from "../../cmaj/index.js";
 	root?: HTMLDivElement;
 	// ctx: AudioContext = new AudioContext({ latencyHint: 0.00001 });
 	constructor(public meta: FaustDspMeta, public wasm: Uint8Array | string) { super(); }
-	init = async (ctx: AudioContext) => {
-		ctx = new AudioContext();
+	init = async (contextManager: typeof ContextManager) => {
+		const ctx = new AudioContext();
 		ctx.suspend();
 		ctx.destination.channelInterpretation = "discrete";
 		this.wasm = base64ToBytes(this.wasm);
