@@ -123,7 +123,7 @@ await App.init({
 		:host([size="lg"]) #play { display: none; }
 		:host([size="lg"]) .actions-left { display: none; }
 		:host([size="lg"]) #edit { display: none; }
-		:host([size="sm"]:not([menu-open])) #sidebar { transform: scaleX(0) translateX(-50%); }
+		
 		:host([size="sm"]) flex-splitter { display: none; }
 		#editor-split { position: relative; }
 		:host([size="sm"]:not([preview-mode])) #preview { display: none !important; }
@@ -174,6 +174,22 @@ await App.init({
 			height: 100%;
 			outline: none !important;
 		}
+		:host([size="sm"]:not([menu-open])) #sidebar { transform: scaleX(0) translateX(-50%); }
+		@keyframes sidebarOpen {
+			0% {
+				transform: scaleX(0) translateX(-50%);
+			}
+			80% {
+				transform: scaleY(1.1) scaleX(1.1) translateX(0);
+			}
+			100% {
+				transform: scaleX(1) translateX(0);
+			}
+		}
+		:host([size="sm"][menu-open]) #sidebar {
+			animation: sidebarOpen 0.2s ease-out;
+		}
+		
 		.sidebar-close {
 			display: flex;
 			justify-content: flex-end;
