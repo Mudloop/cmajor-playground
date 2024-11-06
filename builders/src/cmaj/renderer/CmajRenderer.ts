@@ -107,7 +107,7 @@ import { BuildRenderer } from "../index.js";
 			window.addEventListener('resize', () => this.resize(main, this.manifest.view!.width!, this.manifest.view!.height!));
 			observer.observe(main);
 		} else {
-			document.body.style.zoom = '85%;'
+			document.body.parentElement!.style.zoom = '85%'
 		}
 		const midiInputEndpointID = this.getMIDIInputEndpointID(connection);
 		if (midiInputEndpointID) {
@@ -124,8 +124,8 @@ import { BuildRenderer } from "../index.js";
 		const rect = main.parentElement!.getBoundingClientRect();
 		const scale = Math.min(rect.width / width, rect.height / height);
 		main.style.setProperty('--scale', scale.toString());
-		main.style.setProperty('--left', (rect.width - width * scale) / 2 + 'px');
-		main.style.setProperty('--top', (rect.height - height * scale) / 2 + 'px');
+		main.style.setProperty('--left', (rect.width - width * scale + 8) / 2 + 'px');
+		main.style.setProperty('--top', (rect.height - height * scale + 8) / 2 + 'px');
 	}
 	updated() {
 		if (this.main) this.main.style.transform = `scale(${localStorage.getItem('zoom') ?? 100}%)`;

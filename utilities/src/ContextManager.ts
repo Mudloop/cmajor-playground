@@ -47,11 +47,17 @@ export class ContextManager {
 		const currentState = this.currentContext.state;
 		const desiredState = this.activated && !this.muted ? 'running' : 'suspended';
 		if (currentState == desiredState) return;
+		if (currentState == 'closed') return;
 		if (desiredState == 'suspended') this.currentContext.suspend();
 		if (desiredState == 'running') {
 			this.currentContext.resume();
 			clearInterval(this.interval)
 			this.interval = setInterval(() => {
+				if (this.currentContext?.state == 'closed') {
+					clearInterval(this.interval)
+					this.resolvers.clear();
+					return;
+				}
 				if (this.currentContext?.state != 'running') return;
 				clearInterval(this.interval)
 				for (let resolver of [...this.resolvers]) resolver();
