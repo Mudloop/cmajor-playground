@@ -24,7 +24,7 @@ await App.init({
 @customElement('cmaj-playground') export class Playground extends LitElement {
 
 	@property({ type: String, attribute: true }) layout: Layout = Layout.Horizontal;
-	@property({ type: String }) size?: 'sm' | 'lg';
+	@property({ type: String }) size?: 'sm' | 'md' | 'lg';
 	@property({ type: Boolean, attribute: 'menu-open' }) menuOpen = false;
 
 	@property({ type: Boolean, attribute: true }) enlarged: boolean = false;
@@ -55,7 +55,7 @@ await App.init({
 		.logo {
 			display: flex;
 			padding: 20px 8px;
-			padding-bottom: 4px;
+			padding-bottom: 12px;
 			gap: 8px;
 			position: relative;
 			width: fit-content;
@@ -125,17 +125,21 @@ await App.init({
 		:host(:not([preview-mode])) #edit { opacity: 1; }
 		:host([layout="vertical"]) #split-bottom { opacity: 1; }
 		:host(:not([layout="vertical"])) #split-right { opacity: 1; }
-		:host([size="sm"]) #split-bottom { display: none; }
-		:host([size="sm"]) #split-right { display: none; }
+		:host(:not([size="lg"])) #split-bottom { display: none; }
+		:host(:not([size="lg"])) #split-right { display: none; }
 		:host([size="lg"]) #play { display: none; }
-		:host([size="lg"]) .actions-left { display: none; }
+		:host(:not([size="sm"])) .actions-left { display: none; }
 		:host([size="lg"]) #edit { display: none; }
 		
-		:host([size="sm"]) flex-splitter { display: none; }
+		:host([size="sm"]) #main-splitter { display: none; }
+		:host([size="md"][preview-mode]) #main-splitter { display: none; }
+		:host(:not([size="lg"])) #content-splitter { display: none; }
 		#editor-split { position: relative; }
 		:host([size="sm"]:not([preview-mode])) #preview { display: none !important; }
+		:host([size="md"]:not([preview-mode])) #preview { display: none !important; }
 		:host([size="sm"][preview-mode]) #editors { display: none !important; }
-		:host([size="sm"][preview-mode]) #preview {
+		:host([size="md"][preview-mode]) #editors { display: none !important; }
+		:host([size="sm"][preview-mode]) #preview, :host([size="md"][preview-mode]) #preview {
 			flex-shrink: 0 !important;
 			flex-grow: 1 !important;
 			flex-basis: 100% !important;
@@ -182,6 +186,11 @@ await App.init({
 			outline: none !important;
 		}
 		:host([size="sm"]:not([menu-open])) #sidebar { transform: scaleX(0) translateX(-50%); }
+		:host([size="md"][preview-mode])
+			#sidebar {
+				transform: scaleX(0) translateX(-50%);
+				position: absolute;
+			}
 		@keyframes sidebarOpen {
 			0% {
 				transform: scaleX(0) translateX(-50%);
@@ -193,23 +202,26 @@ await App.init({
 				transform: scaleX(1) translateX(0);
 			}
 		}
-		:host([size="sm"][menu-open]) #sidebar {
-			animation: sidebarOpen 0.2s ease-out;
-		}
+		:host([size="sm"][menu-open]) #sidebar { animation: sidebarOpen 0.2s ease-out;}
 		.sidebar-top {
+			min-height: 38px;
 			display: flex;
 			flex-direction: row;
 			justify-content: space-between;
 			align-items: center;
-			padding-bottom: 4px;
 			border-bottom: 1px solid #4e4e4e;
+		}
+		.sidebar-top h3 {
+			flex: 1;
+			text-align: center;
+			justify-content: center;
 		}
 		.sidebar-close {
 			display: flex;
 			justify-content: flex-end;
 			padding: 4px;
 		}
-		:host([size=lg]) .sidebar-close {
+		:host([size=lg]) .sidebar-close, :host([size=md]) .sidebar-close {
 			display: none;
 		}
 
@@ -309,7 +321,14 @@ await App.init({
 		}
 	}
 
-	private checkSize = () => this.setAttribute('size', (this.getBoundingClientRect()).width < 900 ? 'sm' : 'lg');
+	private checkSize = () => {
+		const width = this.getBoundingClientRect().width;
+		if (width < 900) {
+			this.setAttribute('size', width < 700 ? 'sm' : 'md');
+			return;
+		}
+		this.setAttribute('size', 'lg');
+	};
 	private sendRequest = (type: string, data?: any) => window.postMessage({ type, data }, '*');
 
 	async loadProject(id?: string) {
@@ -332,14 +351,9 @@ await App.init({
 		<dialog open id="sidebar">
 			<div class="sidebar-top">
 				${this.hideProjectPanel ? html`
-					<div class="project">
-						<h3>${this.project!.info.name}</h3>
-					</div>
+					<h3>${this.project!.info.name}</h3>
 				` : html`
-				<div class="logo">
-					<img src="${new URL(logo, import.meta.url)}">
-					<span>BETA</span>
-				</div>
+					<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>
 				`}
 				<div class="sidebar-close">
 					<ui-icon icon="close" currentColors @click=${() => this.removeAttribute('menu-open')}></ui-icon>
@@ -351,7 +365,7 @@ await App.init({
 			` : html`<cmaj-projects .playground=${this}></cmaj-projects>`}
 			${keyed(this.project!.info.id, html`<cmaj-explorer .playground=${this}></cmaj-explorer>`)}
 		</dialog>
-		<flex-splitter attach="prev"></flex-splitter>
+		<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
 		<div id="content">
 			<header>
 				<div class="actions actions-left">
@@ -364,6 +378,8 @@ await App.init({
 					<ui-icon width=20 height=20 id="edit" icon="edit" currentColors @click=${() => this.removeAttribute('preview-mode')}></ui-icon>
 					<ui-icon width=20 height=20 id="play" icon="play" currentColors @click=${() => this.setAttribute('preview-mode', '')}></ui-icon>
 					${this.embedded && this.enlarged ? html`<ui-icon width=20 height=20 currentColors class="selected" icon="shrink" @click=${(e: any) => this.sendRequest('shrink')}></ui-icon>` : ''}
+					<ui-icon width="20" height="20" currentColors icon="unmuted"></ui-icon>
+					<ui-icon width=20 height=20 id="settings" icon="tabler-settings-2" currentStroke @click=${() => this.setAttribute('preview-mode', '')}></ui-icon>
 					${this.embedded && !this.enlarged ? html`<ui-icon width=20 height=20 currentColors icon="enlarge" @click=${(e: any) => this.sendRequest('enlarge')}></ui-icon>` : ''}
 				</div>
 			</header>

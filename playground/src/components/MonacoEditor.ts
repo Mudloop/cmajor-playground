@@ -46,9 +46,17 @@ import { FileEditorBase } from "./FileEditorBase";
 		});
 
 		this.monaco.onDidChangeModelContent(() => this.setEditorContent(this.monaco!.getValue()));
-		this.observer = new ResizeObserver(() => this.monaco?.layout());
+		this.observer = new ResizeObserver(() => this.checkSize());
 		this.observer.observe(editorContainer);
-		window.addEventListener('resize', () => this.monaco?.layout());
+		window.addEventListener('resize', () => this.checkSize());
+		this.checkSize();
+		
+	}
+
+	private checkSize(): void {
+		const size = this.getBoundingClientRect();
+		this.monaco?.updateOptions({ minimap: { enabled: size.width > 900 } });
+		this.monaco?.layout();
 	}
 
 	onDispose() {
