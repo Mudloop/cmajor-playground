@@ -7,8 +7,19 @@ import { COMMON_STYLES } from './common-styles';
 import { keyed } from 'lit/directives/keyed';
 import { Modals } from './Modals';
 import { Trigger } from '@cmajor-playground/utilities';
-import { App } from '../state';
+import { App, ZipLoader } from '../state';
 export enum Layout { Horizontal = 'horizontal', Vertical = 'vertical' }
+import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
+import { CmajLanguageDefinition, FaustLanguageDefinition } from '../languages';
+import { defaultTemplate, uiTemplate } from '../templates';
+await App.init({
+	vfs: 'CmajPlayground', builds: 'builds',
+	templates: { default: defaultTemplate, ui: uiTemplate },
+	sources: { zip: ZipLoader },
+	builders: [FaustBuilder, CmajorBuilder],
+	languages: [CmajLanguageDefinition, FaustLanguageDefinition],
+	serviceWorker: new URL('../../service.worker.js', import.meta.url)
+});
 @customElement('cmaj-playground') export class Playground extends LitElement {
 	@property({ type: String, attribute: true }) layout: Layout = Layout.Horizontal;
 	@property({ type: String }) size?: 'sm' | 'lg';

@@ -13,6 +13,9 @@ export class App {
 	static get lastProjectNumber() { return parseInt(localStorage.getItem('lastProjectNumber') ?? '0') }
 	static set lastProjectNumber(id: number) { localStorage.setItem('lastProjectNumber', id.toString()) }
 	static init = async (config: AppConfig) => {
+		try {
+			await navigator?.serviceWorker?.register(config.serviceWorker.href);
+		} catch (e) { console.error(e) }
 		this.templates = config.templates ?? {};
 		this.sources = config.sources ?? {};
 		this.vfs = new VirtualFS(config.vfs);
@@ -20,9 +23,7 @@ export class App {
 		config.languages.forEach(language => this.registerLanguage(language));
 		const json = monaco.languages.getLanguages().find(lang => lang.extensions?.includes('.json'))
 		json!.extensions!.push('.cmajorpatch');
-		try {
-			await navigator?.serviceWorker?.register(config.serviceWorker.href);
-		} catch (e) { console.error(e) }
+		
 	}
 	static registerLanguage(lang: LanguageDefinition): void {
 		monaco.languages.register(lang.language);
