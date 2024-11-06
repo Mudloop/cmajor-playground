@@ -59,10 +59,10 @@ const directory = directive(class extends AsyncDirective {
 			background-color: #353637d6;
 			flex: 1;
 			position: absolute;
-			top: 6px;
-			width: calc(100% - 12px);
-			left: 6px;
-			max-height: calc(100% - 12px);
+			top: 0px;
+			width: calc(100%);
+			left: 0;
+			max-height: calc(100%);
 
 			overflow-y: auto;
 		}

@@ -52,7 +52,7 @@ export const COMMON_STYLES = css`
 		box-shadow: inset 0 0 20px #00000022, inset 0 0 2px 1px #00000055;
 		border-top: 1px solid #333;
 		border-bottom: 1px solid #333;
-		padding: 6px;
+		/*padding: 6px;*/
 	}
 
 	ui-menu>*:not([slot=trigger]) {

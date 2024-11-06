@@ -140,7 +140,7 @@ export class MagicFS {
 				const entry = file.type == 'dir' ? new MagicDir(this, file.path, file.id) : new MagicFile(this, file.path, file.id, file.hash!);
 				this._lookup.set(file.id, entry);
 				return entry;
-			}).sort((a, b) => a.isDir && b.isFile ? -1 : naturalSort()(a.name, b.name));
+			}).sort((a, b) => a.isDir && b.isFile ? -1 : (a.isFile && b.isDir ? 1 : naturalSort()(a.name, b.name)));
 		} catch (e) {
 			console.error(e);
 
