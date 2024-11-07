@@ -18,6 +18,9 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			width: 100%;
 			height: 100%;
 		}
+		header>* {
+			width: unset;
+		}
 		.container {
 			display: flex;
 			flex-direction: column;
@@ -26,9 +29,7 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			gap: 6px;
 			background-color: #33333366;
 			padding: 6px;
-			
 		}
-		
 		:host([position=bottom]) .container {
 			flex-direction: row-reverse;
 		}
@@ -63,9 +64,8 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			flex-direction: column;
 			gap: 4px;
 		}
-		header>* {width:100%;}
 		header>:first-child {
-			justify-content: space-between;
+			/*justify-content: space-between;*/
 			display: flex;
 			align-items: center;
 			flex-direction: row;
@@ -123,6 +123,16 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			opacity: 1;
 		}
 		select { flex: 1; }
+		select:disabled {
+			opacity: 1;
+			background: unset !important;
+			text-align: center;
+			padding-right: 8px;
+			font-weight: 600;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+		}
 		.audio-player {
 			visibility: hidden;
 			display: flex;
@@ -187,23 +197,13 @@ import { ContextManager } from "@cmajor-playground/utilities";
 		}
 	}
 	render = () => html`
-		<div class="container">
-			<header @change=${() => this.requestUpdate()}>
-				<div class="${this.products.length < 2 ? 'hidden' : ''}">
-					<select id="product">${this.products.map((product) => html`<option value=${product.path} ?selected=${product.path === this.selectedProduct?.path}>${product.path.split('/').at(-1)?.replace('.cmajorpatch', '')}</option>`)}</select>
-					<!--select>
-						${Array.from(' '.repeat(20)).map((_, i) => html`<option>${i * 5 + 5}%</option>`)}
-					</select-->
-					<div class="audio-player">
-						<select>${audioFiles.map((file) => html`<option value=${file} ?selected=${file === this.selectedAudioFile}>${file.split('/').at(-1)}</option>`)}</select>
-						<ui-icon icon="player-play"></ui-icon>
-						<div class="dropzone">Drop audio file here</div>
-					</div>
-					<ui-icon @click=${() => { delete this.selectedProduct; this.requestUpdate(); }} icon="tabler-reload"></ui-icon>
+		<div part="container" class="container">
+			<header part="header" @change=${() => this.requestUpdate()}>
+				<div>
+					<select ?disabled=${this.products.length < 2} id="product">${this.products.map((product) => html`<option value=${product.path} ?selected=${product.path === this.selectedProduct?.path}>${product.path.split('/').at(-1)?.replace('.cmajorpatch', '')}</option>`)}</select>
+					<ui-icon @click=${() => { delete this.selectedProduct; this.prevHash = ''; this.requestUpdate(); }} icon="tabler-reload"></ui-icon>
 				</div>
-				<div style="display:flex; gap:4px; flex-wrap: wrap;">
-					${this.inputs}
-				</div>
+				<div style="display:flex; gap:4px; flex-wrap: wrap;">${this.inputs}</div>
 			</header>
 			
 			<main class="${ContextManager.muted ? 'muted' : ''}" >
@@ -235,7 +235,6 @@ import { ContextManager } from "@cmajor-playground/utilities";
 		await ContextManager.activateContext();
 	}
 }
-const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 @customElement('cmaj-input') class Input extends LitElement {
 	static styles = css`
 		${COMMON_STYLES}

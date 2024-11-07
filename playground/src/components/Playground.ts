@@ -139,6 +139,24 @@ await App.init({
 		:host(:not([size="lg"])[preview-mode]) cmaj-header::part(tabs) {
 			transform: scaleX(0);
 		}
+		:host(:not([size="lg"])[preview-mode]) cmaj-products::part(container) {
+			padding: 0;
+			gap: 0;
+		}
+		:host(:not([size="lg"])[preview-mode]) cmaj-products::part(header) {
+			min-height: 38px;
+			align-items: center;
+			padding-right: 160px;
+			flex-direction: row;
+		}
+		:host(:not([size="lg"])[preview-mode]) cmaj-header {
+			position: fixed;
+			right: 0;
+			z-index: 100000;
+		}
+		:host(:not([size="lg"])[preview-mode]) cmaj-header::after {
+			display: none;
+		}
 		:host(:not([size="lg"])[preview-mode]) cmaj-header::part(menu-button) {
 			display: none;
 		}
