@@ -22,6 +22,16 @@ import { BuildRenderer } from "../index.js";
 			gap: 4px;
 			padding: 4px;
 		}
+		:host>label {
+			color: white;
+			font-size: 16px;
+			text-align: center;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			opacity: 0.75;
+		}
 		main {
 			flex: 1;
 			position: relative;
@@ -71,6 +81,7 @@ import { BuildRenderer } from "../index.js";
 	constructor(public manifest: Manifest, public version: string, public code: string, public fileId: string) {
 		super();
 		if (!window.customElements.get('cmaj-panel-piano-keyboard')) customElements.define('cmaj-panel-piano-keyboard', PianoKeyboard);
+		console.log({ code });
 	}
 	init = async (contextManager: typeof ContextManager) => {
 		const ctx = contextManager.newContext;
@@ -80,10 +91,18 @@ import { BuildRenderer } from "../index.js";
 			localStorage.setItem('state-' + this.fileId, JSON.stringify(state));
 		})
 
-
+		const CmajorClass = await new Function(`return (${this.code});`)();
+		const midiInputEndpointID = CmajorClass.prototype.getInputEndpoints().find((i: any) => i.purpose === 'midi in')?.endpointID;
+		if (!midiInputEndpointID) {
+			const label = document.createElement('label');
+			label.textContent = 'Click to enable patch';
+			this.shadowRoot!.appendChild(label);
+			await new Promise((resolve) => document.addEventListener('pointerdown', resolve, { once: true }));
+			label.remove();
+		}
 		connection.getCmajorVersion = () => this.version;
 		await (connection.initialise({
-			CmajorClass: await new Function(`return (${this.code});`)(),
+			CmajorClass,
 			audioContext: ctx,
 			workletName: 'cmaj-worklet-processor',
 			hostDescription: 'WebAudio',
@@ -109,7 +128,6 @@ import { BuildRenderer } from "../index.js";
 		} else {
 			document.body.parentElement!.style.zoom = '85%'
 		}
-		const midiInputEndpointID = this.getMIDIInputEndpointID(connection);
 		if (midiInputEndpointID) {
 			const keyboard = new PianoKeyboard();
 			keyboard.attachToPatchConnection(connection, midiInputEndpointID);
@@ -127,8 +145,5 @@ import { BuildRenderer } from "../index.js";
 		main.style.setProperty('--left', (rect.width - width * scale + 8) / 2 + 'px');
 		main.style.setProperty('--top', (rect.height - height * scale + 8) / 2 + 'px');
 	}
-	updated() {
-		if (this.main) this.main.style.transform = `scale(${localStorage.getItem('zoom') ?? 100}%)`;
-	}
-	getMIDIInputEndpointID = (connection: helpers.AudioWorkletPatchConnection) => connection.inputEndpoints.find((i: any) => i.purpose === 'midi in')?.endpointID
+
 }

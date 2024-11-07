@@ -1,4 +1,4 @@
-import logo from '../../assets/img/logo.png' with { type: 'file' };
+
 import { LitElement, PropertyValues, css, html } from "lit";
 import { customElement, property } from "lit/decorators";
 import { Project } from '../state/Project';
@@ -52,40 +52,7 @@ await App.init({
 			box-sizing: border-box;
 			user-select: none;
 		}
-		.logo {
-			display: flex;
-			padding: 20px 8px;
-			padding-bottom: 12px;
-			gap: 8px;
-			position: relative;
-			width: fit-content;
-		}
-		.logo img {
-			width: 100%;
-			max-width: 150px;
-			min-width: 150px;
-			height: auto;
-			
-			opacity: .65;
-		}
-		.logo span {
-			background-color: #fff;
-			opacity: .8;
-			padding: 2px 4px;
-			font-size: 7px;
-			border-radius: 4px;
-			margin-right: 4px;
-			color: black;
-			text-transform: uppercase;
-			font-weight: 900;
-			letter-spacing: 1px;
-			display: flex;
-			align-items: center;
-			align-self: start;
-			position: absolute;
-			right: 0;
-			top: 17px;
-		}
+		
 		#editors>*:not(:last-child) { display: none; }
 		#editors { flex: 1; }
 		header {
@@ -212,24 +179,7 @@ await App.init({
 			}
 		}
 		:host([size="sm"][menu-open]) #sidebar { animation: sidebarOpen 0.2s ease-out;}
-		.sidebar-top {
-			min-height: 38px;
-			display: flex;
-			flex-direction: row;
-			justify-content: space-between;
-			align-items: center;
-			border-bottom: 1px solid #4e4e4e;
-		}
-		.sidebar-top h3 {
-			flex: 1;
-			text-align: center;
-			justify-content: center;
-		}
-		.sidebar-close {
-			display: flex;
-			justify-content: flex-end;
-			padding: 4px;
-		}
+		
 		:host([size=lg]) .sidebar-close, :host([size=md]) .sidebar-close {
 			display: none;
 		}
@@ -322,12 +272,6 @@ await App.init({
 			const splitter = this.shadowRoot!.getElementById('content-splitter') as LitElement;
 			splitter?.requestUpdate();
 		}
-		if (_changedProperties.has('menuOpen')) {
-			console.log('menu-open', this.menuOpen);
-			const dialog = this.shadowRoot!.querySelector('dialog') as HTMLDialogElement;
-			dialog?.close();
-			if (this.getAttribute('menu-open')) dialog?.showModal();
-		}
 	}
 
 	private checkSize = () => {
@@ -357,23 +301,11 @@ await App.init({
 	}
 	render = () => this.project ? this.renderUI() : html`<ui-loader></ui-loader>`;
 	private renderUI = () => html`
-		<dialog open id="sidebar">
-			<div class="sidebar-top">
-				${this.hideProjectPanel ? html`
-					<h3>${this.project!.info.name}</h3>
-				` : html`
-					<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>
-				`}
-				<div class="sidebar-close">
-					<ui-icon icon="close" currentColors @click=${() => this.removeAttribute('menu-open')}></ui-icon>
-				</div>
+		<cmaj-sidebar id="sidebar" .hideProjectPanel=${this.hideProjectPanel} .playground=${this}>
+			<div class="sidebar-close" slot="close">
+				<ui-icon icon="close" currentColors @click=${() => this.removeAttribute('menu-open')}></ui-icon>
 			</div>
-			
-			${this.hideProjectPanel ? html`
-				${this.project?.info.modified ? html`<button @click=${() => this.resetProject()}>Reset</button>` : ''}
-			` : html`<cmaj-projects .playground=${this}></cmaj-projects>`}
-			${keyed(this.project!.info.id, html`<cmaj-explorer .playground=${this}></cmaj-explorer>`)}
-		</dialog>
+		</cmaj-sidebar>
 		<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
 		<div id="content">
 			<header>

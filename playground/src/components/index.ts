@@ -10,3 +10,4 @@ export * from './Loader';
 export * from './FlexSplitter';
 export * from './Menu';
 export * from './ProductsPanel';
+export * from './Sidebar';
