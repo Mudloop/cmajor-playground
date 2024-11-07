@@ -1,3 +1,3 @@
 export * from './FaustPreprocessor'
 export * from './JSPreprocessor'
-export * from './TSPreprocessor'
+// export * from './TSPreprocessor'

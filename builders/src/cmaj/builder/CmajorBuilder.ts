@@ -7,7 +7,7 @@ import { Manifest } from '../types';
 import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.wasm' with {type: 'file'}
 import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.data' with {type: 'file'}
 import { Preprocessor } from './Preprocessor.js';
-import { FaustPreprocessor, JSPreprocessor, TSPreprocessor } from './preprocessors';
+import { FaustPreprocessor, JSPreprocessor } from './preprocessors';
 const worker = workerSrc.replaceAll('./cmaj-compiler-wasm.wasm', new URL(wasmPath, import.meta.url).href);
 
 export class CmajorBuilder {
