@@ -19,7 +19,6 @@ import { App } from "../state";
 		}
 		
 		ul {
-			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
 			border-radius: 4px;
 			background-color: #353637d6;
 			list-style: none;
@@ -39,7 +38,6 @@ import { App } from "../state";
 			background-color: #444;
 		}
 		.selected {
-			box-shadow: inset 0 0 50px #ffffff22, inset 0 0 8px 1px #ffffff44, 0 5px 10px #00000055;
 			background-color: rgba(226, 180, 97, 0.267) !important;
 			outline: 1px solid rgba(226, 180, 97, 0.29);
 			outline-offset: -1px;
@@ -60,7 +58,6 @@ import { App } from "../state";
 			background-color: rgba(226, 180, 97, 0.3);
 		}
 		li>span {
-			box-shadow: inset 0 0 10px #00000022, inset 0 0 8px 1px #00000022;
 			background-color: #d3cd9f;
 			padding: 2px 4px;
 			font-size: 7.5px;

@@ -181,7 +181,6 @@ await App.init({
 			display: none;
 		}
 		#sidebar {
-			box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
 			transition: transform 0.25s ease;
 			transform-origin: left;
 			width: 200px;

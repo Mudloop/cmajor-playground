@@ -17,7 +17,7 @@ export const COMMON_STYLES = css`
 		display: none !important;
 	}
 	h4 {
-		box-shadow: inset 0 0 50px #00000022, inset 0 0 8px 1px #00000088;
+		
 		text-transform: uppercase;
 		font-size: 10px;
 		padding: 5px 10px;
@@ -49,7 +49,7 @@ export const COMMON_STYLES = css`
 		cursor: default;
 	}
 	section {
-		box-shadow: inset 0 0 20px #00000022, inset 0 0 2px 1px #00000055;
+		
 		border-top: 1px solid #333;
 		border-bottom: 1px solid #333;
 		/*padding: 6px;*/
@@ -64,7 +64,7 @@ export const COMMON_STYLES = css`
 		color: #b3b0aa;
 		border: 1px solid #555;
 		border-radius: 10px;
-		box-shadow: 0 0 20px #00000044;
+		
 		background-color: #202223;
 		
 	}
