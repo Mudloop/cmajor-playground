@@ -12,15 +12,24 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			width:100%;
 			max-width:100%;
 			display: flex;
-			flex-direction: row;
-			justify-content: start;
-			align-items: stretch;
+			
 			height: 38px;
 			min-height: 38px;
 			max-height: 38px;
 			overflow-y: hidden;
 			position: relative;
 			background-color: #202223;
+		}
+		main {
+			position: absolute;
+			display: flex;
+			flex-direction: row;
+			justify-content: start;
+			align-items: stretch;
+			inset: 0;
+			bottom: -20px;
+			padding-bottom: 20px;
+			overflow-x: auto;
 		}
 		.tab {
 			display: flex;
@@ -88,7 +97,16 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 		this.playground.onChange.add(() => this.requestUpdate());
 	}
 
-	render = () => this.playground.project!.editors.map(editor => this.rendertab(editor));
+	prevSelected: any;
+	updated() {
+		if (this.prevSelected != this.playground.project!.editorsOrder.at(-1)) {
+			const active = this.shadowRoot!.querySelector('.active');
+			active?.scrollIntoView({ behavior: 'smooth' });
+			this.prevSelected = this.playground.project!.editorsOrder.at(-1);
+		}
+	}
+
+	render = () => html`<main>${this.playground.project!.editors.map(editor => this.rendertab(editor))}</main>`;
 	rendertab = (editor: FileEditorBase) => html`
 		<div class="tab ${editor == this.playground.project!.editorsOrder.at(-1) ? 'active' : ''}" @pointerdown=${() => this.playground.project!.focusEditor(editor)}>
 			<ui-file-icon .path=${editor.file.name} width="16" height="16"></ui-file-icon>

@@ -78,17 +78,15 @@ import { BuildRenderer } from "../index.js";
 	`;
 	connection?: helpers.AudioWorkletPatchConnection;
 	main?: HTMLElement;
-	constructor(public manifest: Manifest, public version: string, public code: string, public fileId: string) {
+	constructor(public manifest: Manifest, public version: string, public code: string, public fileId: string, public hideKeyboard: boolean) {
 		super();
 		if (!window.customElements.get('cmaj-panel-piano-keyboard')) customElements.define('cmaj-panel-piano-keyboard', PianoKeyboard);
-		console.log({ code });
 	}
 	init = async (contextManager: typeof ContextManager) => {
 		const ctx = contextManager.newContext;
 		const connection = this.connection = new helpers.AudioWorkletPatchConnection(this.manifest);
 		connection.addAllParameterListener(async () => {
-			const state = await TaskManager.addTask(this, () => new Promise((resolve) => this.connection?.requestFullStoredState((state: any) => resolve(state))))
-			localStorage.setItem('state-' + this.fileId, JSON.stringify(state));
+			localStorage.setItem('state-' + this.fileId, JSON.stringify((await TaskManager.addTask(this, () => new Promise((resolve) => this.connection?.requestFullStoredState((state: any) => resolve(state)))))));
 		})
 
 		const CmajorClass = await new Function(`return (${this.code});`)();
@@ -126,9 +124,9 @@ import { BuildRenderer } from "../index.js";
 			window.addEventListener('resize', () => this.resize(main, this.manifest.view!.width!, this.manifest.view!.height!));
 			observer.observe(main);
 		} else {
-			document.body.parentElement!.style.zoom = '85%'
+			document.body.parentElement!.style.zoom = '80%'
 		}
-		if (midiInputEndpointID) {
+		if (midiInputEndpointID && !this.hideKeyboard) {
 			const keyboard = new PianoKeyboard();
 			keyboard.attachToPatchConnection(connection, midiInputEndpointID);
 			keyboard.style.display = 'flex';

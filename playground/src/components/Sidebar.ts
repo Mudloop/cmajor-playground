@@ -64,20 +64,15 @@ import { COMMON_STYLES } from './common-styles';
 		}
 	`;
 	render = () => html`
-		
 		<div class="sidebar-top">
-			${this.hideProjectPanel ? html`
-				<h3>${this.playground.project!.info.name}</h3>
-			` : html`
-				<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>
-			`}
+			${this.hideProjectPanel
+				? html`<h3>${this.playground.project!.info.name}</h3>`
+				: html`<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>`}
 			<slot name="close"></slot>
 		</div>
-		
-		${this.hideProjectPanel ? html`
-			${this.playground.project?.info.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}
-		` : html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
-		${keyed(this.playground.project!.info.id, html`<cmaj-explorer .playground=${this.playground}></cmaj-explorer>`)}
-	
+		${this.hideProjectPanel
+			? html`${this.playground.project?.info.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
+			: html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
+		${keyed(this.playground.project!.info.id, html`<cmaj-explorer .playground=${this.playground}></cmaj-explorer>`)}	
 	`
 }

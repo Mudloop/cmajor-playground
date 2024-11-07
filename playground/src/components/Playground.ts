@@ -24,10 +24,11 @@ await App.init({
 @customElement('cmaj-playground') export class Playground extends LitElement {
 
 	@property({ type: String, attribute: true }) layout: Layout = Layout.Horizontal;
-	@property({ type: String }) size?: 'sm' | 'md' | 'lg';
+	@property({ type: String, attribute: true }) size?: 'sm' | 'md' | 'lg';
 	@property({ type: Boolean, attribute: 'menu-open' }) menuOpen = false;
 
 	@property({ type: Boolean, attribute: true }) enlarged: boolean = false;
+	@property({ type: Boolean, attribute: 'preview-mode' }) previewMode: boolean = false;
 	embedded = window.top != window;
 	project?: Project; observer?: ResizeObserver;
 	onChange: Trigger = new Trigger();
@@ -55,48 +56,13 @@ await App.init({
 		
 		#editors>*:not(:last-child) { display: none; }
 		#editors { flex: 1; }
-		header {
-			display: flex;
-			flex-direction: row;
-			justify-content: space-between;
-			align-items: center;
-			position: relative;
-		}
-		header::after {
-			content: '';
-			position: absolute;
-			border-bottom: 1px solid #4e4e4e;
-			inset: 0;
-			pointer-events: none;
-		}
-		.actions {
-			display: flex;
-			gap: 4px;
-			align-items: center;
-			padding: 0 8px;
-		}
-		ui-icon {
-			cursor: pointer;
-			opacity: .55;
-			position: relative;
-		}
-		ui-icon:after {
-			content: '';
-			position: absolute;
-			inset: -4px;
-			background-color: transparent;
-		}
-		ui-icon:hover { opacity: .8; }
-		ui-icon.selected { opacity: 1; }
-		:host([preview-mode]) #play { opacity: 1; }
-		:host(:not([preview-mode])) #edit { opacity: 1; }
+		
+		
+		
 		:host([layout="vertical"]) #split-bottom { opacity: 1; }
 		:host(:not([layout="vertical"])) #split-right { opacity: 1; }
-		:host(:not([size="lg"])) #split-bottom { display: none; }
-		:host(:not([size="lg"])) #split-right { display: none; }
-		:host([size="lg"]) #play { display: none; }
-		:host(:not([size="sm"])) .actions-left { display: none; }
-		:host([size="lg"]) #edit { display: none; }
+		
+		
 		
 		:host([size="sm"]) #main-splitter { display: none; }
 		:host([size="md"][preview-mode]) #main-splitter { display: none; }
@@ -162,10 +128,16 @@ await App.init({
 			height: 100%;
 			outline: none !important;
 		}
+		:host([size="md"]) #sidebar {
+			width: 160px;
+		}
 		:host([size="sm"]:not([menu-open])) #sidebar { transform: scaleX(0) translateX(-50%); }
 		:host([size="md"][preview-mode]) #sidebar {
 			transform: scaleX(0) translateX(-50%);
 			position: absolute;
+		}
+		:host(:not([size="lg"])[preview-mode]) cmaj-header::part(tabs) {
+			transform: scaleX(0);
 		}
 		@keyframes sidebarOpen {
 			0% {
@@ -230,8 +202,12 @@ await App.init({
 			background-color: #e2b461;
 			transition: all 0.2s ease .1s;
 		}
+		ui-icon {
+			cursor: pointer;
+		}
 	`;
 	hideProjectPanel: boolean = false;
+	hideKeyboard: boolean = false;
 
 	connectedCallback(): void {
 		super.connectedCallback();
@@ -243,7 +219,9 @@ await App.init({
 
 	protected async firstUpdated(_changedProperties: PropertyValues) {
 		let qs = new URLSearchParams(location.search);
-		this.hideProjectPanel = qs.get('project-panel') == 'false';
+		this.hideProjectPanel = qs.get('hide-project-panel') == 'true';
+		this.hideKeyboard = qs.get('hide-keyboard') == 'true';
+		if (qs.get('preview-mode')) this.setAttribute('preview-mode', '');
 		App.vfs.watch((_) => {
 			this.onChange.trigger();
 			this.requestUpdate();
@@ -268,6 +246,7 @@ await App.init({
 	}
 
 	protected updated(_changedProperties: PropertyValues): void {
+		console.log(this.previewMode);
 		if (_changedProperties.has('layout')) {
 			const splitter = this.shadowRoot!.getElementById('content-splitter') as LitElement;
 			splitter?.requestUpdate();
@@ -282,7 +261,7 @@ await App.init({
 		}
 		this.setAttribute('size', 'lg');
 	};
-	private sendRequest = (type: string, data?: any) => window.postMessage({ type, data }, '*');
+	sendRequest = (type: string, data?: any) => window.postMessage({ type, data }, '*');
 
 	async loadProject(id?: string) {
 		if (id && id == this.project?.info.id) return;
@@ -308,35 +287,20 @@ await App.init({
 		</cmaj-sidebar>
 		<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
 		<div id="content">
-			<header>
-				<div class="actions actions-left">
-					<ui-icon icon="menu" @click=${() => this.setAttribute('menu-open', '')}></ui-icon>
-				</div>
-				<cmaj-tabs .playground=${this}></cmaj-tabs>
-				<div class="actions">
-					<ui-icon width=20 height=20 id="split-bottom" icon="split-bottom" currentColors @click=${() => this.setAttribute('layout', Layout.Vertical)}></ui-icon>
-					<ui-icon width=20 height=20 id="split-right" icon="split-right" currentColors @click=${() => this.setAttribute('layout', Layout.Horizontal)}></ui-icon>
-					<ui-icon width=20 height=20 id="edit" icon="edit" currentColors @click=${() => this.removeAttribute('preview-mode')}></ui-icon>
-					<ui-icon width=20 height=20 id="play" icon="play" currentColors @click=${() => this.setAttribute('preview-mode', '')}></ui-icon>
-					${this.embedded && this.enlarged ? html`<ui-icon width=20 height=20 currentColors class="selected" icon="shrink" @click=${(e: any) => this.sendRequest('shrink')}></ui-icon>` : ''}
-					<ui-icon width=20 height=20 id="settings" icon="tabler-settings-2" currentStroke @click=${() => this.setAttribute('preview-mode', '')}></ui-icon>
-					${this.embedded && !this.enlarged ? html`<ui-icon width=20 height=20 currentColors icon="enlarge" @click=${(e: any) => this.sendRequest('enlarge')}></ui-icon>` : ''}
-					<ui-icon class="${ContextManager.muted ? 'off' : 'selected' }" width="20" height="20" currentColors icon="${ContextManager.muted? 'muted' : 'unmuted'}" @click=${()=>this.toggleMute()}></ui-icon>
-				</div>
-			</header>
+			<cmaj-header size=${this.size} .previewMode=${this.previewMode} .embedded=${this.embedded} .enlarged=${this.enlarged} .playground=${this}></cmaj-header>
 			<div id="content-split">
 				<div id="editors" style="overflow: hidden;">
 					<div class="none">Open a file to start coding</div>
 					${this.project!.editorsOrder}
 				</div>
 				<flex-splitter id="content-splitter" attach="next"></flex-splitter>
-				<div id="preview" style="display: flex; overflow: hidden;">${keyed(this.project!.info.id, html`<cmaj-products position=${this.layout == Layout.Vertical ? 'bottom' : 'right'} .buildManager=${this.project!.buildManager}></cmaj-products>`)}</div>
+				<div id="preview" style="display: flex; overflow: hidden;">${keyed(this.project!.info.id, html`<cmaj-products .hideKeyboard=${this.hideKeyboard} position=${this.layout == Layout.Vertical ? 'bottom' : 'right'} .buildManager=${this.project!.buildManager}></cmaj-products>`)}</div>
 			</div>
 		</div>
 	`;
 	closeProject = () => this.loadProject();
 	close = async (editor: FileEditorBase) => (await this.project?.closeFile(editor.file.id)) && this.requestUpdate();
-	private toggleMute() {
+	toggleMute() {
 		ContextManager.toggleMute();
 		this.requestUpdate();
 	}

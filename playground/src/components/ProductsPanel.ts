@@ -11,6 +11,7 @@ import { ContextManager } from "@cmajor-playground/utilities";
 
 	@property({ type: Object }) buildManager!: BuildManager;
 	@property({ type: String, attribute: true }) position = 'right';
+	@property({ type: Boolean }) hideKeyboard = false;
 	static styles = css`
 		${COMMON_STYLES}
 		:host {
@@ -184,9 +185,9 @@ import { ContextManager } from "@cmajor-playground/utilities";
 	}
 	render = () => html`
 		<div class="container">
-			<header  @change=${() => this.requestUpdate()}>
-				<div>
-					<select class="${this.products.length < 2 ? 'hiddenn' : ''}" id="product">${this.products.map((product) => html`<option value=${product.path} ?selected=${product.path === this.selectedProduct?.path}>${product.path.split('/').at(-1)?.replace('.cmajorpatch', '')}</option>`)}</select>
+			<header @change=${() => this.requestUpdate()}>
+				<div class="${this.products.length < 2 ? 'hidden' : ''}">
+					<select id="product">${this.products.map((product) => html`<option value=${product.path} ?selected=${product.path === this.selectedProduct?.path}>${product.path.split('/').at(-1)?.replace('.cmajorpatch', '')}</option>`)}</select>
 					<!--select>
 						${Array.from(' '.repeat(20)).map((_, i) => html`<option>${i * 5 + 5}%</option>`)}
 					</select-->
@@ -195,29 +196,25 @@ import { ContextManager } from "@cmajor-playground/utilities";
 						<ui-icon icon="player-play"></ui-icon>
 						<div class="dropzone">Drop audio file here</div>
 					</div>
-					<ui-icon @click=${(e)=> {
-						delete this.selectedProduct;
-						this.requestUpdate();
-					}} icon="tabler-reload"></ui-icon>
+					<ui-icon @click=${() => { delete this.selectedProduct; this.requestUpdate(); }} icon="tabler-reload"></ui-icon>
 				</div>
 				<section>
 					<h4 style="justify-content:start;gap:4px;padding-left:2px;"><ui-icon icon="tabler-chevron-right" style="flex-grow:0; flex-shrink:0;"></ui-icon> <span>Input Config (TODO)</span></h4>
 				</section>
-				
-				
 			</header>
 			
 			<main class="${ContextManager.muted ? 'muted' : ''}" >
 				${this.selectedProduct?.ready ? keyed(this.selectedProduct.hash, html`
 					<iframe @load=${(e: Event) => this.iframeLoaded(e.target as HTMLIFrameElement)} src="${this.url}">
 				</iframe>`) :
-				html`<ui-loader></ui-loader>`}
+			html`<ui-loader></ui-loader>`}
 			</main>
 		</div>
 	`;
 	async iframeLoaded(el: HTMLIFrameElement) {
 		el.contentDocument?.addEventListener('pointerdown', () => ContextManager.userClicked(), { once: true });
 		const init = (el.contentWindow as any).init;
-		await init(this.selectedProduct, ContextManager, this.selectedProduct?.id);
+		const ret = await init(this.selectedProduct, ContextManager, this.selectedProduct?.id, this.hideKeyboard);
+		console.log('ret', ret);
 	}
 }

@@ -11,3 +11,4 @@ export * from './FlexSplitter';
 export * from './Menu';
 export * from './ProductsPanel';
 export * from './Sidebar';
+export * from './Header';
