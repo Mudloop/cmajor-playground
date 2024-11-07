@@ -1,5 +1,5 @@
 import logo from '../../assets/img/logo.png' with { type: 'file' };
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, PropertyValues } from "lit";
 import { customElement, property } from "lit/decorators";
 import { keyed } from "lit/directives/keyed";
 import { Playground } from "./Playground";
@@ -63,11 +63,14 @@ import { COMMON_STYLES } from './common-styles';
 			padding: 4px;
 		}
 	`;
+	protected firstUpdated(_changedProperties: PropertyValues): void {
+		this.playground.onChange.add(() => this.requestUpdate());
+	}
 	render = () => html`
 		<div class="sidebar-top">
 			${this.hideProjectPanel
-				? html`<h3>${this.playground.project!.info.name}</h3>`
-				: html`<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>`}
+			? html`<h3>${this.playground.project!.info.name}</h3>`
+			: html`<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>`}
 			<slot name="close"></slot>
 		</div>
 		${this.hideProjectPanel

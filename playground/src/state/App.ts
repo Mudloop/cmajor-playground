@@ -23,7 +23,7 @@ export class App {
 		config.languages.forEach(language => this.registerLanguage(language));
 		const json = monaco.languages.getLanguages().find(lang => lang.extensions?.includes('.json'))
 		json!.extensions!.push('.cmajorpatch');
-		
+
 	}
 	static registerLanguage(lang: LanguageDefinition): void {
 		monaco.languages.register(lang.language);
@@ -39,13 +39,16 @@ export class App {
 	static listProjects = async (): Promise<ProjectInfo[]> => (await this.vfs.getVolumes()).filter(volume => volume.meta.isProject).map(volume => {
 		return { id: volume.id, name: volume.meta.name, source: volume.meta.source, modified: volume.meta.modified };
 	});
-	static openProject = async (id?: string) => {
+	static openProject = async (id?: string, remember: boolean = true) => {
 		id ??= this.lastOpenedProject;
 		const info = await this.getProjectInfo(id) ?? await this.createProject();
 		if (!info) throw new Error('Failed to open project');
 		const projectVolume = await this.vfs.getVolume(info.id);
-		const artifacts = await this.vfs.createVolume([info.id, 'artifcats'].join(':'), {}, info.id);
-		this.lastOpenedProject = info.id;
+		const artifacts = await this.vfs.createVolume([info.id, 'artifacts'].join(':'), {}, info.id);
+		if (remember || !this.lastOpenedProject) {
+			console.log('storing latest');
+			this.lastOpenedProject = info.id;
+		}
 		const ret = new Project(info, projectVolume);
 		return await ret.init();
 	}
@@ -54,7 +57,6 @@ export class App {
 		files = !files || typeof files == 'string' ? await this.templates[files ?? 'default']?.(name) : files ?? [];
 		const id = generateUniqueId();
 		const projectVolume = await this.vfs.createVolume(id, { name, source, isProject: true });
-		// files.forEach(file => file.type == 'dir' ? projectVolume.mkdir(file.path) : projectVolume.writeFile(file.path, file.content!));
 		for (let file of files) {
 			if (file.type == 'dir') await projectVolume.mkdir(file.path);
 			else await projectVolume.writeFile(file.path, file.content!);

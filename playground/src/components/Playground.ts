@@ -259,7 +259,7 @@ await App.init({
 		if (demo) {
 			const url = Object.entries(examples).find(([key, url]) => key == demo)?.[1];
 			const info = await App.importProject(import.meta.resolve(url!));
-			await this.loadProject(info!.id);
+			await this.loadProject(info!.id, false);
 		} else {
 			await this.loadProject();
 		}
@@ -284,13 +284,13 @@ await App.init({
 	};
 	sendRequest = (type: string, data?: any) => window.postMessage({ type, data }, '*');
 
-	async loadProject(id?: string) {
+	async loadProject(id?: string, remember: boolean = true) {
 		if (id && id == this.project?.info.id) return;
 		if (this.project && !await this.project.close()) {
 			this.requestUpdate();
 			return false;
 		}
-		this.project = await App.openProject(id);
+		this.project = await App.openProject(id, remember);
 		this.project.onChange.add(() => {
 			this.requestUpdate();
 			this.onChange.trigger();
@@ -330,13 +330,14 @@ await App.init({
 		if (this.project!.info.modified) {
 			if (!await Modals.confirm('Reset project?', `Are you sure you want to reset '${this.project?.info.name}'?`)) return;
 		}
+		// await this.project!.reset();
 		await App.deleteProject(this.project!.info.id);
 		let qs = new URLSearchParams(location.search);
 		let demo = qs.get('demo')
 		if (demo) {
 			const url = Object.entries(examples).find(([key, url]) => key == demo)?.[1];
 			const info = await App.importProject(import.meta.resolve(url!));
-			await this.loadProject(info!.id);
+			await this.loadProject(info!.id, false);
 		} else {
 			await this.loadProject();
 		}

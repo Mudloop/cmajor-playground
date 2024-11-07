@@ -127,7 +127,8 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			opacity: 1;
 			background: unset !important;
 			text-align: center;
-			padding-right: 8px;
+			padding-right: 2px;
+			padding-left: 12px;
 			font-weight: 600;
 			letter-spacing: 1px;
 			text-transform: uppercase;
@@ -264,11 +265,13 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			gap: 4px;
 		}
 		select {
-			width: 90px;
+			flex: 1;
+			min-width: 90px;
 		}
 		input[type=range] {
 			-webkit-appearance: none;
-			width: 90px;
+			flex: 1;
+			min-width: 90px;
 			background: transparent;
 		}
 		

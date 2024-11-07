@@ -9,6 +9,7 @@ import { MonacoEditor } from "../components/MonacoEditor";
 import { mtype } from "../mtype";
 
 export class Project {
+
 	editors: FileEditorBase[] = [];
 	editorsOrder: FileEditorBase[] = [];
 	onChange = new Trigger;
@@ -19,8 +20,8 @@ export class Project {
 		this.fs = new MagicFS(volume);
 		volume.watch(async (details) => {
 			if (!this.info.modified) {
-				console.trace(details);
 				this.info.modified = true;
+				console.log('setting modified');
 				volume.getMeta().then(async meta => {
 					await volume.setMeta({ ...meta, modified: true });
 					this.onChange.trigger();
@@ -128,5 +129,11 @@ export class Project {
 		a.href = url;
 		a.download = this.info.name + '.zip';
 		a.click();
+	}
+	async reset() {
+		await this.volume.clear();
+		const meta = await this.volume.getMeta()
+		await this.volume.setMeta({ ...meta, modified: false });
+		this.onChange.trigger();
 	}
 }
