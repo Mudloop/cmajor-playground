@@ -24,6 +24,7 @@ export class BuildManager {
 			else this.builds[file.path].ready = this.builds[file.path].build != undefined;
 			builder.update(this.fs, file as MagicFile, (dirty: boolean) => {
 				this.builds[file.path].ready = !dirty;
+				this.builds[file.path].hash = generateUniqueId();
 				this.onChange.trigger();
 			}).then(result => {
 				this.builds[file.path].ready = result != undefined;

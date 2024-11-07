@@ -1,9 +1,9 @@
-import { ContextManager } from '@cmajor-playground/utilities';
 import { LitElement } from 'lit';
+import { RendererOptions } from '../core';
 
 export * from './builder/CmajorBuilder';
 export * from './renderer/CmajRenderer';
 
-export interface BuildRenderer extends LitElement {
-	init(contextManager: typeof ContextManager): Promise<void>;
+export interface RendererBase extends LitElement {
+	init(options: RendererOptions): Promise<void>;
 }

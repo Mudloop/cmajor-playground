@@ -1,6 +1,6 @@
-export const work = async<T>(src: string | URL, data: any): Promise<T> => {
+export const work = async<T>(src: string | URL, data: any, options?: any): Promise<T> => {
 	const url = src instanceof URL ? src : URL.createObjectURL(new Blob([src], { type: 'application/javascript' }));
-	const worker = new Worker(url);
+	const worker = new Worker(url, options);
 	try {
 		return await new Promise((resolve, reject) => {
 			worker.onmessage = (e) => e.data.error ? reject(e.data.error) : resolve(e.data);

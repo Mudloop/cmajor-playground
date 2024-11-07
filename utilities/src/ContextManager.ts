@@ -20,7 +20,7 @@ export class ContextManager {
 		localStorage.setItem('audio-muted', muted.toString())
 		this.muteChanged.trigger();
 	}
-	private static userHasClicked = false;
+	static userHasClicked = false;
 	private static currentContext?: AudioContext;
 	private static activated: boolean = false;
 	static get context() {

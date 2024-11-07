@@ -1,14 +1,13 @@
-import { FaustRenderer, BuildRenderer, CmajRenderer } from "@cmajor-playground/builders";
-import { ContextManager } from "@cmajor-playground/utilities";
+import { FaustRenderer, RendererBase, CmajRenderer, RendererOptions } from "@cmajor-playground/builders";
 import { render } from "lit";
-(window as any).init = async (data: any, contextManager: typeof ContextManager, rootId: string, hideKeyboard = false) => {
+(window as any).init = async (options: RendererOptions) => {
 	const getComponent = () => {
-		switch (data.type) {
-			case 'cmajor': return new CmajRenderer(data.build.manifest, data.build.version, data.build.code, rootId, hideKeyboard);
-			case 'faust': return new FaustRenderer(data.build.json, data.build.wasm);
+		switch (options.type) {
+			case 'cmajor': return new CmajRenderer();
+			case 'faust': return new FaustRenderer();
 		}
 	}
-	const component = getComponent() as BuildRenderer;
+	const component = getComponent() as RendererBase;
 	render(component, (document.getElementById('preview-container')!))
-	return await component.init(contextManager);
+	return await component.init(options);
 }

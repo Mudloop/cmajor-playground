@@ -7,8 +7,8 @@ import { BuildManager } from "../state";
 import { audioFiles } from "../state/audioFiles";
 import { BuildInfo } from "@cmajor-playground/builders";
 import { ContextManager } from "@cmajor-playground/utilities";
-@customElement('cmaj-products') export class ProductsPanel extends LitElement {
 
+@customElement('cmaj-products') export class ProductsPanel extends LitElement {
 	@property({ type: Object }) buildManager!: BuildManager;
 	@property({ type: String, attribute: true }) position = 'right';
 	@property({ type: Boolean }) hideKeyboard = false;
@@ -173,11 +173,14 @@ import { ContextManager } from "@cmajor-playground/utilities";
 		});
 
 	}
+	prevHash: string = '';
 	protected updated(_changedProperties: PropertyValues): void {
 		const productSelect = this.shadowRoot!.querySelector('select#product') as HTMLSelectElement;
 		const product = this.products.find(product => product.path == productSelect.value);
-		if (product != this.selectedProduct) {
+		if ((product?.hash ?? '') != (this.prevHash ?? '')) {
+			this.prevHash = product?.hash ?? '';
 			this.selectedProduct = product;
+			this.inputs.length = 0;
 			ContextManager.reset();
 			this.url = this.selectedProduct ? `./$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/` : '';
 			this.requestUpdate();
@@ -198,8 +201,8 @@ import { ContextManager } from "@cmajor-playground/utilities";
 					</div>
 					<ui-icon @click=${() => { delete this.selectedProduct; this.requestUpdate(); }} icon="tabler-reload"></ui-icon>
 				</div>
-				<section>
-					<h4 style="justify-content:start;gap:4px;padding-left:2px;"><ui-icon icon="tabler-chevron-right" style="flex-grow:0; flex-shrink:0;"></ui-icon> <span>Input Config (TODO)</span></h4>
+				<section style="display:flex; gap:4px; flex-wrap: wrap;">
+					${this.inputs}
 				</section>
 			</header>
 			
@@ -211,10 +214,134 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			</main>
 		</div>
 	`;
+	inputs: Input[] = [];
 	async iframeLoaded(el: HTMLIFrameElement) {
-		el.contentDocument?.addEventListener('pointerdown', () => ContextManager.userClicked(), { once: true });
-		const init = (el.contentWindow as any).init;
-		const ret = await init(this.selectedProduct, ContextManager, this.selectedProduct?.id, this.hideKeyboard);
-		console.log('ret', ret);
+		if (!ContextManager.userHasClicked) el.contentDocument?.addEventListener('pointerdown', () => ContextManager.userClicked(), { once: true });
+		const ctx = ContextManager.newContext;
+		const ret = await (el.contentWindow as any).init({
+			type: this.selectedProduct?.type,
+			data: this.selectedProduct?.build,
+			rootFileId: this.selectedProduct?.id,
+			hideKeyboard: this.hideKeyboard,
+			ctx: ctx,
+			addInput: (name: string, channels: number) => {
+				const input = new Input(name, channels, ctx);
+				this.inputs.push(input);
+				this.requestUpdate();
+				return input.nodes;
+			}
+		});
+		this.requestUpdate();
+		await ContextManager.activateContext();
 	}
+}
+const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+@customElement('cmaj-input') class Input extends LitElement {
+	static styles = css`
+		${COMMON_STYLES}
+		:host {
+			display: flex;
+			flex-direction: column;
+			background-color: #00000020;
+			--slider-bg: #4e4e4e;
+			--slider-thumb: #757575;
+			padding: 6px;
+			gap: 4px;
+			width: 120px;
+		}
+		header {
+			text-transform: uppercase;
+			font-size: 10px;
+			
+			font-weight: 600;
+			letter-spacing: 2px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		main {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+		select {
+			width: 100%;
+		}
+		input[type=range] {
+			-webkit-appearance: none;
+			width: 100%;
+			background: transparent;
+		}
+		
+		input[type=range]:focus {
+			outline: none;
+		}
+		
+		input[type=range]::-webkit-slider-runnable-track {
+			width: 100%;
+			height: 8.4px;
+			cursor: pointer;
+			background: var(--slider-bg);
+			border-radius: 50px;
+			border: none;
+		}
+		
+		input[type=range]::-webkit-slider-thumb {
+			height: 12px;
+			width: 12px;
+			border-radius: 100%;
+			background: var(--slider-thumb);
+			cursor: pointer;
+			-webkit-appearance: none;
+			margin-top: -2px;
+		}
+		
+		
+	`;
+	nodes: AudioNode[] = [];
+	osc: OscillatorNode;
+	internalNodes: AudioNode[] = [];
+	@property({ type: String }) type: string = 'none';
+	@property({ type: String }) oscType: OscillatorType = 'sine';
+	@property({ type: Number }) oscFrequency: number = 220;
+	constructor(public name: string, public channels: number, public ctx: AudioContext) {
+		super();
+		for (let i = 0; i < channels; i++) this.nodes.push(ctx.createGain());
+		this.osc = ctx.createOscillator();
+		this.osc.start();
+		// this.osc.type
+		this.internalNodes.push(this.osc);
+	}
+
+	protected updated(_changedProperties: PropertyValues): void {
+		this.internalNodes.forEach(node => node.disconnect());
+		console.log(this.type);
+		switch (this.type) {
+			case 'oscillator':
+				this.nodes.forEach(node => this.osc.connect(node));
+				this.osc.type = this.oscType;
+				this.osc.frequency.value = this.oscFrequency;
+				break;
+		}
+	}
+	render = () => html`
+		<header>Input: ${this.name}</header>
+		<main>
+			<select @change=${(e: any) => this.type = e.target.value}>
+				<option value="node">None</option>
+				<option value="oscillator">Oscillator</option>
+				<option value="audio-file" disabled="">Audio File (TODO)</option>
+			</select>
+			${this.type == 'oscillator' ? html`
+				<select @change=${(e: any) => this.oscType = e.target.value}>
+					<option value="sine">Sine</option>
+					<option value="sawtooth">Sawtooth</option>
+					<option value="square">Square</option>
+					<option value="triangle">Triangle</option>
+				</select>
+				<input type="range" min="0" max="2000" value="220" @input=${(e: any) => this.oscFrequency = parseFloat(e.target.value)}>
+			`: ''}
+		</main>
+
+	`
 }

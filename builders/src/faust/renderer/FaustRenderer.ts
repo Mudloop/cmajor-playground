@@ -1,12 +1,13 @@
-import { css, LitElement, PropertyValues, unsafeCSS } from "lit";
+import { css, LitElement, unsafeCSS } from "lit";
 import { customElement } from "lit/decorators";
 import { FaustDspMeta, FaustMonoDspGenerator } from "@grame/faustwasm";
-import { base64ToBytes, ContextManager } from "@cmajor-playground/utilities";
+import { base64ToBytes } from "@cmajor-playground/utilities";
 import { FaustUI } from "./faust-ui/index.js";
 import styles from './faust-ui/index.css' with {type: 'text'}
-import { BuildRenderer } from "../../cmaj/index.js";
+import { RendererBase } from "../../cmaj/index.js";
+import { RendererOptions } from "../../core/types.js";
 
-@customElement('faust-renderer') export class FaustRenderer extends LitElement implements BuildRenderer {
+@customElement('faust-renderer') export class FaustRenderer extends LitElement implements RendererBase {
 	static styles = css`
 		:host {
 			display: block;
@@ -27,19 +28,16 @@ import { BuildRenderer } from "../../cmaj/index.js";
 		${unsafeCSS(styles)}
 	`;
 	root?: HTMLDivElement;
-	// ctx: AudioContext = new AudioContext({ latencyHint: 0.00001 });
-	constructor(public meta: FaustDspMeta, public wasm: Uint8Array | string) { super(); }
-	init = async (contextManager: typeof ContextManager) => {
-		const ctx = contextManager.newContext;
-		ctx.suspend();
-		ctx.destination.channelInterpretation = "discrete";
-		this.wasm = base64ToBytes(this.wasm);
-		const module = new WebAssembly.Module(this.wasm);
-		// const module = (await WebAssembly.instantiate (this.wasm, {})).module;
-		const json = JSON.stringify(this.meta);
+	constructor() { super(); }
+	init = async (options: RendererOptions) => {
+		const meta = options.data.json;
+		options.ctx.destination.channelInterpretation = "discrete";
+		const wasm = base64ToBytes(options.data.wasm);
+		const module = new WebAssembly.Module(wasm);
+		const json = JSON.stringify(meta);
 		const generator = new FaustMonoDspGenerator();
-		const factory = { module, code: this.wasm, json, soundfiles: {} };
-		const faustNode = (await generator.createNode(ctx, this.meta.name, factory, true, 512))!;
+		const factory = { module, json, soundfiles: {} };
+		const faustNode = (await generator.createNode(options.ctx, meta.name, factory, true, 512))!;
 		const root = document.createElement("div");
 		this.root = root;
 		this.shadowRoot!.appendChild(root);
@@ -55,9 +53,7 @@ import { BuildRenderer } from "../../cmaj/index.js";
 		faustNode.setOutputParamHandler(faustUI.paramChangeByDSP.bind(faustUI));
 		root.style.minWidth = `${faustUI.minWidth}px`;
 		root.style.minHeight = `${faustUI.minHeight}px`;
-		await contextManager.activateContext();
-		faustNode.connect(ctx.destination);
-		
+		faustNode.connect(options.ctx.destination);
 	};
 	updated() {
 		if (this.root) this.root.style.transform = `scale(${localStorage.getItem('zoom') ?? 100}%)`;

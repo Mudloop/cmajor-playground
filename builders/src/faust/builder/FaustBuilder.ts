@@ -2,7 +2,7 @@ import workerSrc from '../../../generated/faust.worker.js' with { type: 'text' }
 import moduleURL from '@grame/faustwasm/libfaust-wasm/libfaust-wasm.js' with {type: 'file'}
 import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.wasm' with {type: 'file'}
 import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.data' with {type: 'file'}
-import { Builder, Files } from '../../core/Builder';
+import { Builder, Files } from '../../core/types.js';
 import { hashString, MagicFile, MagicFS, work } from '@cmajor-playground/utilities';
 const faustModuleUrl = import.meta.resolve(moduleURL as any);
 export class FaustBuilder {

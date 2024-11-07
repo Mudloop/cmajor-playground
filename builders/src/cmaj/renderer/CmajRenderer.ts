@@ -4,9 +4,10 @@ import PianoKeyboard from './cmaj_api/cmaj-piano-keyboard.js';
 import { Manifest } from "../types.js";
 import * as helpers from './cmaj_api/cmaj-audio-worklet-helper.js'
 import { createPatchViewHolder } from './cmaj_api/cmaj-patch-view.js';
-import { ContextManager, TaskManager } from "@cmajor-playground/utilities";
-import { BuildRenderer } from "../index.js";
-@customElement('cmaj-renderer') export class CmajRenderer extends LitElement implements BuildRenderer {
+import { TaskManager } from "@cmajor-playground/utilities";
+import { RendererBase } from "../index.js";
+import { RendererOptions } from "../../core/types.js";
+@customElement('cmaj-renderer') export class CmajRenderer extends LitElement implements RendererBase {
 
 	static styles = css`
 		:host {
@@ -78,19 +79,27 @@ import { BuildRenderer } from "../index.js";
 	`;
 	connection?: helpers.AudioWorkletPatchConnection;
 	main?: HTMLElement;
-	constructor(public manifest: Manifest, public version: string, public code: string, public fileId: string, public hideKeyboard: boolean) {
+	constructor() {
 		super();
 		if (!window.customElements.get('cmaj-panel-piano-keyboard')) customElements.define('cmaj-panel-piano-keyboard', PianoKeyboard);
 	}
-	init = async (contextManager: typeof ContextManager) => {
-		const ctx = contextManager.newContext;
-		const connection = this.connection = new helpers.AudioWorkletPatchConnection(this.manifest);
+	init = async (options: RendererOptions) => {
+		const manifest = options.data.manifest as Manifest;
+		const code = options.data.code as string;
+		const version = options.data.version as string;
+		const connection = this.connection = new helpers.AudioWorkletPatchConnection(manifest);
 		connection.addAllParameterListener(async () => {
-			localStorage.setItem('state-' + this.fileId, JSON.stringify((await TaskManager.addTask(this, () => new Promise((resolve) => this.connection?.requestFullStoredState((state: any) => resolve(state)))))));
+			localStorage.setItem('state-' + options.rootFileId, JSON.stringify((await TaskManager.addTask(this, () => new Promise((resolve) => this.connection?.requestFullStoredState((state: any) => resolve(state)))))));
 		})
 
-		const CmajorClass = await new Function(`return (${this.code});`)();
-		const midiInputEndpointID = CmajorClass.prototype.getInputEndpoints().find((i: any) => i.purpose === 'midi in')?.endpointID;
+		const CmajorClass = await new Function(`return (${code});`)();
+		const inputEndpoints = CmajorClass.prototype.getInputEndpoints().filter((endpoint: any) => endpoint.purpose == 'audio in');
+		const inputNodes: AudioNode[] = inputEndpoints.map((endpoint: any) => options.addInput(endpoint.endpointID, endpoint.numAudioChannels)).flat();
+		console.log(connection.audioNode);
+		const merger = options.ctx.createChannelMerger(inputNodes.length);
+		inputNodes.forEach((node, i) => node.connect(merger, 0, i));
+		// const outputEndpoints = CmajorClass.prototype.getOutputEndpoints();
+		const midiInputEndpointID = inputEndpoints.find((i: any) => i.purpose === 'midi in')?.endpointID;
 		if (!midiInputEndpointID) {
 			const label = document.createElement('label');
 			label.textContent = 'Click to enable patch';
@@ -98,16 +107,16 @@ import { BuildRenderer } from "../index.js";
 			await new Promise((resolve) => document.addEventListener('pointerdown', resolve, { once: true }));
 			label.remove();
 		}
-		connection.getCmajorVersion = () => this.version;
+		connection.getCmajorVersion = () => version;
 		await (connection.initialise({
 			CmajorClass,
-			audioContext: ctx,
+			audioContext: options.ctx,
 			workletName: 'cmaj-worklet-processor',
 			hostDescription: 'WebAudio',
 			rootResourcePath: document.location.pathname
 		}));
-
-		const state = JSON.parse(localStorage.getItem('state-' + this.fileId) ?? 'null');
+		merger.connect(connection.audioNode!);
+		const state = JSON.parse(localStorage.getItem('state-' + options.rootFileId) ?? 'null');
 		if (state) this.connection.sendFullStoredState(state);
 		const container = this.shadowRoot!.appendChild(document.createElement('div'));
 		container.classList.add('container');
@@ -115,25 +124,26 @@ import { BuildRenderer } from "../index.js";
 		this.main = main;
 		const footer = this.shadowRoot!.appendChild(document.createElement('footer'));
 		this.shadowRoot!.append(footer);
+		console.log('audionode:', connection.audioNode, connection);
 		main!.appendChild((await createPatchViewHolder(connection)));
-		if (this.manifest.view?.width && this.manifest.view?.height) {
+		if (manifest.view?.width && manifest.view?.height) {
 			main.classList.add('sized');
-			main.style.setProperty('--width', this.manifest.view.width + 'px');
-			main.style.setProperty('--aspect-ratio', this.manifest.view.width + ' / ' + this.manifest.view.height);
-			const observer: ResizeObserver = new ResizeObserver(() => this.resize(main, this.manifest.view!.width!, this.manifest.view!.height!));
-			window.addEventListener('resize', () => this.resize(main, this.manifest.view!.width!, this.manifest.view!.height!));
+			main.style.setProperty('--width', manifest.view.width + 'px');
+			main.style.setProperty('--aspect-ratio', manifest.view.width + ' / ' + manifest.view.height);
+			const observer: ResizeObserver = new ResizeObserver(() => this.resize(main, manifest.view!.width!, manifest.view!.height!));
+			window.addEventListener('resize', () => this.resize(main, manifest.view!.width!, manifest.view!.height!));
 			observer.observe(main);
 		} else {
 			document.body.parentElement!.style.zoom = '80%'
 		}
-		if (midiInputEndpointID && !this.hideKeyboard) {
+		if (midiInputEndpointID && !options.hideKeyboard) {
 			const keyboard = new PianoKeyboard();
 			keyboard.attachToPatchConnection(connection, midiInputEndpointID);
 			keyboard.style.display = 'flex';
 			footer.appendChild(keyboard);
 		}
-		await contextManager.activateContext();
-		connection.connectDefaultAudioAndMIDI(ctx);
+		connection.connectDefaultAudioAndMIDI(options.ctx);
+
 
 	}
 	resize(main: HTMLElement, width: number, height: number): any {

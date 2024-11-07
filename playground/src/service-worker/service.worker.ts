@@ -1,17 +1,16 @@
 import { isBinary, sanitizePath, VirtualFS } from "@cmajor-playground/utilities";
-import ts from 'typescript';
 import { mtype } from "../mtype";
+import tsPath from './temp/ts.service.js' with {type: 'file'};
 const loc = new URL('.', location.href).href;
 const vfs = new VirtualFS('CmajPlayground');
-class PatchService {
-	static {
+class ServiceRouter {
+	static init() {
 		self.addEventListener('fetch', (event: FetchEvent) => this.handleFetch(event));
 		self.addEventListener('install', (_event: any) => (self as any).skipWaiting());
 		self.addEventListener('activate', (event: any) => event.waitUntil((globalThis as any).clients.claim()));
 	}
 	static handleFetch(event: FetchEvent) {
 		const url = new URL(event.request.url).href.replace(loc, '');
-		// console.log('service worker url:', url);
 		url.startsWith('$') ? event.respondWith(this.serveFromVolume(url.substring(1))) : undefined
 	}
 	static async serveFromVolume(url: string): Promise<Response> {
@@ -23,20 +22,19 @@ class PatchService {
 			const rootFile = await volume.getById(rootId)!;
 			path = sanitizePath(rootFile?.type == 'dir' ? rootFile.path + '/' + path : rootFile?.path + '/../' + path);
 		}
-		const content = await (isBinary(mtype(path)) ? volume.readBinary(path) : volume.readText(path));
+		const mime = mtype(path) ?? 'text/plain';
+		const content = isBinary(mime) ? await volume.readBinary(path) : await volume.readText(path);
 		if (path.endsWith('.ts')) {
-			return new Response((compileTypeScript(content as string)), { headers: { 'Content-Type': 'application/javascript' } });
+			return new Response((await this.compileTypeScript(content as string)), { headers: { 'Content-Type': 'application/javascript' } });
 		}
-		return new Response(content, { headers: { 'Content-Type': mtype(path) ?? 'text/plain' } });
+		return new Response(content, { headers: { 'Content-Type': mime } });
+	}
+	static tsCompiler: Promise<any>;
+	static compileTypeScript = async (code: string) => (await (this.tsCompiler ??= this.loadCompiler())).compileTypeScript(code);
+	static async loadCompiler() {
+		const res = await fetch(tsPath);
+		const src = await res.text();
+		return await new Function(`${src}`)();
 	}
 }
-function compileTypeScript(code: string) {
-	const result = ts.transpileModule(code, {
-		compilerOptions: {
-			module: ts.ModuleKind.Preserve,
-			target: ts.ScriptTarget.ESNext,
-			experimentalDecorators: true,
-		}
-	});
-	return result.outputText;
-}
+ServiceRouter.init();
