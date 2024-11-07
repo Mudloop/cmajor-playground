@@ -93,9 +93,9 @@ import { RendererOptions } from "../../core/types.js";
 		})
 
 		const CmajorClass = await new Function(`return (${code});`)();
-		const inputEndpoints = CmajorClass.prototype.getInputEndpoints().filter((endpoint: any) => endpoint.purpose == 'audio in');
-		const inputNodes: AudioNode[] = inputEndpoints.map((endpoint: any) => options.addInput(endpoint.endpointID, endpoint.numAudioChannels)).flat();
-		console.log(connection.audioNode);
+		const inputEndpoints = CmajorClass.prototype.getInputEndpoints();
+		const audioInputs = inputEndpoints.filter((endpoint: any) => endpoint.purpose == 'audio in')
+		const inputNodes: AudioNode[] = audioInputs.map((endpoint: any) => options.addInput(endpoint.endpointID, endpoint.numAudioChannels)).flat();
 		const merger = options.ctx.createChannelMerger(inputNodes.length);
 		inputNodes.forEach((node, i) => node.connect(merger, 0, i));
 		// const outputEndpoints = CmajorClass.prototype.getOutputEndpoints();
