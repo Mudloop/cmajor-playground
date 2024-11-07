@@ -35,7 +35,7 @@ import { customElement, property } from "lit/decorators";
 	@property({ type: String }) demo?: string;
 	@property({ type: Boolean, attribute: 'hide-project-panel' }) hideProjectPanel = true;
 	@property({ type: Boolean, attribute: 'hide-keyboard' }) hideKeyboard = false;
-	@property({ type: Boolean, attribute: 'preview-mode' }) previewMode = true;
+	@property({ type: Boolean, attribute: 'preview-mode' }) previewMode = false;
 	render = () => html`
 		<dialog open>
 			<iframe src="./?hide-project-panel=${this.hideProjectPanel}${this.demo ? `&demo=${this.demo}` : ''}&hide-keyboard=${this.hideKeyboard}&preview-mode=${this.previewMode}"></iframe>

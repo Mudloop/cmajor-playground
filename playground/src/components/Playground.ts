@@ -224,7 +224,7 @@ await App.init({
 		let qs = new URLSearchParams(location.search);
 		this.hideProjectPanel = qs.get('hide-project-panel') == 'true';
 		this.hideKeyboard = qs.get('hide-keyboard') == 'true';
-		if (qs.get('preview-mode')) this.setAttribute('preview-mode', '');
+		if (qs.get('preview-mode') == 'true') this.setAttribute('preview-mode', '');
 		App.vfs.watch((_) => {
 			this.onChange.trigger();
 			this.requestUpdate();
