@@ -96,8 +96,7 @@ import { RendererOptions } from "../../core/types.js";
 		const inputEndpoints = CmajorClass.prototype.getInputEndpoints();
 		const audioInputs = inputEndpoints.filter((endpoint: any) => endpoint.purpose == 'audio in')
 		const inputNodes: AudioNode[] = audioInputs.map((endpoint: any) => options.addInput(endpoint.endpointID, endpoint.numAudioChannels)).flat();
-		const merger = options.ctx.createChannelMerger(inputNodes.length);
-		inputNodes.forEach((node, i) => node.connect(merger, 0, i));
+
 		// const outputEndpoints = CmajorClass.prototype.getOutputEndpoints();
 		const midiInputEndpointID = inputEndpoints.find((i: any) => i.purpose === 'midi in')?.endpointID;
 		if (!midiInputEndpointID) {
@@ -115,7 +114,11 @@ import { RendererOptions } from "../../core/types.js";
 			hostDescription: 'WebAudio',
 			rootResourcePath: document.location.pathname
 		}));
-		merger.connect(connection.audioNode!);
+		if (inputNodes.length > 0) {
+			const merger = options.ctx.createChannelMerger(inputNodes.length);
+			inputNodes.forEach((node, i) => node.connect(merger, 0, i));
+			merger.connect(connection.audioNode!);
+		}
 		const state = JSON.parse(localStorage.getItem('state-' + options.rootFileId) ?? 'null');
 		if (state) this.connection.sendFullStoredState(state);
 		const container = this.shadowRoot!.appendChild(document.createElement('div'));
