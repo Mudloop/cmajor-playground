@@ -201,9 +201,9 @@ import { ContextManager } from "@cmajor-playground/utilities";
 					</div>
 					<ui-icon @click=${() => { delete this.selectedProduct; this.requestUpdate(); }} icon="tabler-reload"></ui-icon>
 				</div>
-				<section style="display:flex; gap:4px; flex-wrap: wrap;">
+				<div style="display:flex; gap:4px; flex-wrap: wrap;">
 					${this.inputs}
-				</section>
+				</div>
 			</header>
 			
 			<main class="${ContextManager.muted ? 'muted' : ''}" >
@@ -241,13 +241,12 @@ const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 		${COMMON_STYLES}
 		:host {
 			display: flex;
-			flex-direction: column;
-			background-color: #00000020;
+			flex-direction: row;
 			--slider-bg: #4e4e4e;
 			--slider-thumb: #757575;
-			padding: 6px;
-			gap: 4px;
-			width: 120px;
+			padding: 0px 10px;
+			gap: 8px;
+			border-radius: 4px;
 		}
 		header {
 			text-transform: uppercase;
@@ -261,15 +260,16 @@ const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 		}
 		main {
 			display: flex;
-			flex-direction: column;
+			flex-direction: row;
+			flex-wrap: wrap;
 			gap: 4px;
 		}
 		select {
-			width: 100%;
+			width: 90px;
 		}
 		input[type=range] {
 			-webkit-appearance: none;
-			width: 100%;
+			width: 90px;
 			background: transparent;
 		}
 		
@@ -325,7 +325,7 @@ const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 		}
 	}
 	render = () => html`
-		<header>Input: ${this.name}</header>
+		<header>${this.name}</header>
 		<main>
 			<select @change=${(e: any) => this.type = e.target.value}>
 				<option value="node">None</option>
