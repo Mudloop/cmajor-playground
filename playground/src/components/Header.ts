@@ -69,7 +69,7 @@ import { ContextManager } from '@cmajor-playground/utilities';
 		}
 	}
 	render = () => html`
-		<div class="actions actions-left"><ui-icon icon="menu" @click=${() => this.playground.setAttribute('menu-open', '')}></ui-icon></div>
+		<div part="menu-button" class="actions actions-left"><ui-icon icon="menu" @click=${() => this.playground.setAttribute('menu-open', '')}></ui-icon></div>
 		<cmaj-tabs part="tabs" .playground=${this.playground}></cmaj-tabs>
 		<div class="actions">
 			<ui-icon width=20 height=20 id="split-bottom" icon="split-bottom" currentColors @click=${() => this.playground.setAttribute('layout', Layout.Vertical)}></ui-icon>

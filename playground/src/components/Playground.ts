@@ -139,6 +139,9 @@ await App.init({
 		:host(:not([size="lg"])[preview-mode]) cmaj-header::part(tabs) {
 			transform: scaleX(0);
 		}
+		:host(:not([size="lg"])[preview-mode]) cmaj-header::part(menu-button) {
+			display: none;
+		}
 		@keyframes sidebarOpen {
 			0% {
 				transform: scaleX(0) translateX(-50%);

@@ -1,5 +1,5 @@
 import { LitElement, PropertyValues, css, html } from "lit";
-import { customElement } from "lit/decorators";
+import { customElement, property } from "lit/decorators";
 @customElement('cmaj-embedder') export class CmajEmbedder extends LitElement {
 	static styles = css`
 		:host {
@@ -32,9 +32,13 @@ import { customElement } from "lit/decorators";
 			max-height: 100%;
 		}
 	`;
+	@property({ type: String }) demo?: string;
+	@property({ type: Boolean, attribute: 'hide-project-panel' }) hideProjectPanel = true;
+	@property({ type: Boolean, attribute: 'hide-keyboard' }) hideKeyboard = false;
+	@property({ type: Boolean, attribute: 'preview-mode' }) previewMode = true;
 	render = () => html`
 		<dialog open>
-			<iframe src="./?hide-project-panel=true&demo=Pro54&hide-keyboard=true&preview-mode=true"></iframe>
+			<iframe src="./?hide-project-panel=${this.hideProjectPanel}${this.demo ? `&demo=${this.demo}` : ''}&hide-keyboard=${this.hideKeyboard}&preview-mode=${this.previewMode}"></iframe>
 		</dialog>
 	`;
 	protected firstUpdated(_changedProperties: PropertyValues): void {
