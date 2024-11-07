@@ -109,6 +109,9 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			outline: none !important;
 			opacity: .55;
 		}
+		ui-icon {
+			cursor: pointer;
+		}
 		button span {
 			white-space: nowrap;
 			overflow: hidden;
@@ -192,7 +195,10 @@ import { ContextManager } from "@cmajor-playground/utilities";
 						<ui-icon icon="player-play"></ui-icon>
 						<div class="dropzone">Drop audio file here</div>
 					</div>
-					${false && !this.selectedProduct?.ready ? html`<ui-loader size="30"></ui-loader>` : ''}
+					<ui-icon @click=${(e)=> {
+						delete this.selectedProduct;
+						this.requestUpdate();
+					}} icon="tabler-reload"></ui-icon>
 				</div>
 				<section>
 					<h4 style="justify-content:start;gap:4px;padding-left:2px;"><ui-icon icon="tabler-chevron-right" style="flex-grow:0; flex-shrink:0;"></ui-icon> <span>Input Config (TODO)</span></h4>
