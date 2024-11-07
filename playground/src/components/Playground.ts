@@ -267,7 +267,6 @@ await App.init({
 	}
 
 	protected updated(_changedProperties: PropertyValues): void {
-		console.log(this.previewMode);
 		if (_changedProperties.has('layout')) {
 			const splitter = this.shadowRoot!.getElementById('content-splitter') as LitElement;
 			splitter?.requestUpdate();

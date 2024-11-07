@@ -21,7 +21,6 @@ export class Project {
 		volume.watch(async (details) => {
 			if (!this.info.modified) {
 				this.info.modified = true;
-				console.log('setting modified');
 				volume.getMeta().then(async meta => {
 					await volume.setMeta({ ...meta, modified: true });
 					this.onChange.trigger();

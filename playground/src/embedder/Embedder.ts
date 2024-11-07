@@ -38,7 +38,7 @@ import { customElement, property } from "lit/decorators";
 	@property({ type: Boolean, attribute: 'preview-mode' }) previewMode = false;
 	render = () => html`
 		<dialog open>
-			<iframe src="./?hide-project-panel=${this.hideProjectPanel}${this.demo ? `&demo=${this.demo}` : ''}&hide-keyboard=${this.hideKeyboard}&preview-mode=${this.previewMode}"></iframe>
+			<iframe src="${new URL('../../', import.meta.url).href}./?hide-project-panel=${this.hideProjectPanel}${this.demo ? `&demo=${this.demo}` : ''}&hide-keyboard=${this.hideKeyboard}&preview-mode=${this.previewMode}"></iframe>
 		</dialog>
 	`;
 	protected firstUpdated(_changedProperties: PropertyValues): void {

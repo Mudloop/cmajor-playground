@@ -46,7 +46,6 @@ export class App {
 		const projectVolume = await this.vfs.getVolume(info.id);
 		const artifacts = await this.vfs.createVolume([info.id, 'artifacts'].join(':'), {}, info.id);
 		if (remember || !this.lastOpenedProject) {
-			console.log('storing latest');
 			this.lastOpenedProject = info.id;
 		}
 		const ret = new Project(info, projectVolume);

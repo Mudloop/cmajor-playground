@@ -317,7 +317,6 @@ import { ContextManager } from "@cmajor-playground/utilities";
 
 	protected updated(_changedProperties: PropertyValues): void {
 		this.internalNodes.forEach(node => node.disconnect());
-		console.log(this.type);
 		switch (this.type) {
 			case 'oscillator':
 				this.nodes.forEach(node => this.osc.connect(node));

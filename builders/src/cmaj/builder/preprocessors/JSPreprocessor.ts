@@ -14,7 +14,6 @@ export class JSPreprocessor extends Preprocessor {
 	}
 	private compile = async (volumeId: string, path: string, src: string): Promise<string> => {
 		const url = new URL(`./$${volumeId}/${path}`, document.location.href).href;
-		console.log(url);
 		return await work<string>(/*js*/ `
 			self.onmessage = async function (event) {
 				const module = await import(event.data);

@@ -127,7 +127,6 @@ import { RendererOptions } from "../../core/types.js";
 		this.main = main;
 		const footer = this.shadowRoot!.appendChild(document.createElement('footer'));
 		this.shadowRoot!.append(footer);
-		console.log('audionode:', connection.audioNode, connection);
 		main!.appendChild((await createPatchViewHolder(connection)));
 		if (manifest.view?.width && manifest.view?.height) {
 			main.classList.add('sized');
