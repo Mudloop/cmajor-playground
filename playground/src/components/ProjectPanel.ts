@@ -127,7 +127,7 @@ import { App } from "../state";
 				<nav>
 					<cmaj-examples .playground=${this.playground}></cmaj-examples>
 					<ui-menu>
-						<ui-icon slot="trigger" icon="tabler-chevron-down" currentColors></ui-icon>
+						<ui-icon slot="trigger" icon="plus" currentColors></ui-icon>
 						
 						<ul>
 							<li @click=${() => this.newProject('default')}><ui-icon currentStroke icon="tabler-plus"></ui-icon> New Project</li>

@@ -13,7 +13,7 @@ import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
 import { CmajLanguageDefinition, FaustLanguageDefinition } from '../languages';
 import { defaultTemplate, uiTemplate } from '../templates';
 await App.init({
-	vfs: 'CmajPlayground', builds: 'builds',
+	vfs: 'CmajPlaygroundProjects', builds: 'builds',
 	examples,
 	templates: { default: defaultTemplate, ui: uiTemplate },
 	sources: { zip: ZipLoader },

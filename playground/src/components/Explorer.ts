@@ -91,10 +91,16 @@ const directory = directive(class extends AsyncDirective {
 		.tools {
 			display: flex;
 			gap: 0px;
+			width: 0;
+			overflow: hidden;
 		}
 		.tools ui-icon {
 			position: relative;
 			opacity: 0;
+		}
+		header:hover .tools {
+			width: fit-content;
+			overflow: unset;
 		}
 		.close {
 			transform:scale(.75);
@@ -180,8 +186,8 @@ const directory = directive(class extends AsyncDirective {
 			<span class="ellipsis">Files</span>
 			<nav>
 				<ui-icon slot="trigger" icon="tabler-download" currentStroke @click=${() => this.download()}></ui-icon>
-				<ui-icon slot="trigger" icon="tabler-folder-plus" currentStroke @click=${() => this.add(FileType.Dir)}></ui-icon>
 				<ui-icon slot="trigger" icon="tabler-file-plus" currentStroke @click=${() => this.add(FileType.File)}></ui-icon>
+				<ui-icon slot="trigger" icon="tabler-folder-plus" currentStroke @click=${() => this.add(FileType.Dir)}></ui-icon>
 			</nav>
 		</h4>
 		<section><ul class="${this.target == '' ? 'target' : ''}">${directory(this.playground.project!.fs.root, this.renderNode, this.cache)}</ul></section>
