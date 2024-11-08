@@ -19,7 +19,7 @@ import { App } from "../state";
 		}
 		
 		ul {
-			border-radius: 4px;
+			border-radius: 2px;
 			background-color: #353637d6;
 			list-style: none;
 			padding: 0;
@@ -32,6 +32,7 @@ import { App } from "../state";
 			padding: 4px 8px;
 			cursor: pointer;
 			display: flex;
+			align-items: center;
 		}
 
 		li:hover {
@@ -59,14 +60,14 @@ import { App } from "../state";
 		}
 		li>span {
 			background-color: #d3cd9f;
-			padding: 2px 4px;
+			padding: 2px 6px;
 			font-size: 7.5px;
-			border-radius: 4px;
+			border-radius: 50px;
 			margin-right: 4px;
 			color: black;
 			text-transform: uppercase;
 			font-weight: 900;
-			letter-spacing: 1px;
+			letter-spacing: .5px;
 			display: flex;
 			align-items: center;
 		}

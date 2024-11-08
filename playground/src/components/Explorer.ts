@@ -54,7 +54,7 @@ const directory = directive(class extends AsyncDirective {
 		}
 		section > ul {
 			
-			border-radius: 4px;
+			border-radius: 2px;
 			padding: 0;
 			background-color: #353637d6;
 			flex: 1;
@@ -70,13 +70,13 @@ const directory = directive(class extends AsyncDirective {
 		ul {
 			list-style: none;
 			margin: 0;
-			padding-left: 18px;
+			padding-left: 10px;
 		}
 		header {
 			display: flex;
 			align-items: center;
-			padding: 5px;
-			gap: 5px;
+			padding: 3px 5px;
+			gap: 3px;
 			cursor: pointer;
 		}
 		label {
@@ -121,6 +121,12 @@ const directory = directive(class extends AsyncDirective {
 		nav {
 			display: flex;
 			gap: 4px;
+			width: 0;
+			overflow: hidden;
+		}
+		:host(:hover) nav {
+			width: unset;
+			overflow: unset;
 		}
 		nav>* {
 			flex-shrink: 0;
@@ -185,9 +191,9 @@ const directory = directive(class extends AsyncDirective {
 		<h4>
 			<span class="ellipsis">Files</span>
 			<nav>
-				<ui-icon slot="trigger" icon="tabler-download" currentStroke @click=${() => this.download()}></ui-icon>
-				<ui-icon slot="trigger" icon="tabler-file-plus" currentStroke @click=${() => this.add(FileType.File)}></ui-icon>
-				<ui-icon slot="trigger" icon="tabler-folder-plus" currentStroke @click=${() => this.add(FileType.Dir)}></ui-icon>
+				<ui-icon width="15" height="15" slot="trigger" icon="tabler-download" currentStroke @click=${() => this.download()}></ui-icon>
+				<ui-icon width="15" height="15" slot="trigger" icon="tabler-file-plus" currentStroke @click=${() => this.add(FileType.File)}></ui-icon>
+				<ui-icon width="15" height="15" slot="trigger" icon="tabler-folder-plus" currentStroke @click=${() => this.add(FileType.Dir)}></ui-icon>
 			</nav>
 		</h4>
 		<section><ul class="${this.target == '' ? 'target' : ''}">${directory(this.playground.project!.fs.root, this.renderNode, this.cache)}</ul></section>

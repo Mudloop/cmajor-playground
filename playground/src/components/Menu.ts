@@ -38,7 +38,8 @@ import { customElement, property } from "lit/decorators";
 		this.addEventListener('pointerdown', this.open);
 	}
 	visible = false;
-	open = () => {
+	open = (e: PointerEvent) => {
+		if (e.button != 0) return;
 		(this.shadowRoot!.querySelector('dialog')!).showModal();
 		this.querySelector('input') && setTimeout(() => this.querySelector('input')!.focus(), 1);
 		this.visible = true;

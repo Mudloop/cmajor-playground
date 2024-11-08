@@ -19,7 +19,7 @@ export const COMMON_STYLES = css`
 	h4 {
 		text-transform: uppercase;
 		font-size: 10px;
-		padding: 5px 10px;
+		padding: 5px 6px;
 		font-weight: 600;
 		letter-spacing: 2px;
 		display: flex;
