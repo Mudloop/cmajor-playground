@@ -1,1 +1,1 @@
-{ "dependencies": { "@netlify/functions": "^2.8.2" } }
+{ "dependencies": { "@netlify/functions": "^2.8.2", "fs": "^0.0.1-security", "path": "^0.12.7" } }

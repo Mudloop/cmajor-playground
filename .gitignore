@@ -137,3 +137,6 @@ out
 
 # Local Netlify folder
 .netlify
+
+
+local.config.json

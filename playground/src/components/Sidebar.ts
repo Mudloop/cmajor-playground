@@ -6,6 +6,9 @@ import { Playground } from "./Playground";
 import { COMMON_STYLES } from './common-styles';
 
 @customElement('cmaj-sidebar') export class Sidebar extends LitElement {
+	githubAuth(e: any) {
+		window.open('https://github.com/login/oauth/authorize?client_id=Ov23li52ClmsCJFfVhqc', '_blank');
+	}
 	@property({ type: Boolean }) hideProjectPanel = false;
 	@property({ type: Object }) playground!: Playground;
 	static styles = css`
@@ -73,6 +76,10 @@ import { COMMON_STYLES } from './common-styles';
 			: html`<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>`}
 			<slot name="close"></slot>
 		</div>
+		<button @click=${e => this.githubAuth(e)}>
+			<ui-icon currentColors icon="github"></ui-icon>
+			Connect
+		</button>
 		${this.hideProjectPanel
 			? html`${this.playground.project?.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
 			: html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
