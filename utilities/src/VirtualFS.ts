@@ -1,17 +1,19 @@
 import JSZip from "jszip";
-import { DB, Writer } from "./DB";
+import { DB, Reader, Writer } from "./DB";
 import { generateUniqueId } from "./generateUniqueId";
 import { sanitizePath } from "./sanitizePath";
 export type WatcherCallback = (details: WatcherEvent) => void;
 export type FileOperationType = 'mkdir' | 'unlink' | 'rename';
 export type FileOperation = { path: string, oldPath?: string, id: string, type: FileOperationType }
 export type FileWriteOperation = { path: string, oldPath?: string, id: string, type: 'writeFile', hash: string }
-export type VolumeOperationType = 'volumeRemoved' | 'volumeAdded';
-export type VolumeOperation = { type: VolumeOperationType }
+export type VolumeOperationType = 'volumeRemoved' | 'volumeAdded' | 'versionChanged';
+export type VolumeOperation = { type: VolumeOperationType, version?: number }
 export type Operation = VolumeOperation | FileOperation | FileWriteOperation;
 export type WatcherEvent = { volume: string, operations: Operation[]; timestamp: number };
 export type FSEntry = { path: string; type: 'file' | 'dir'; id: string; created: number; modified: number; size?: number; hash?: string; };
 
+const normalizeContent = (content: string | Uint8Array): Uint8Array => typeof content === 'string' ? new TextEncoder().encode(content) : content
+const hashContents = async (content: Uint8Array) => Array.from(new Uint8Array((await crypto.subtle.digest('SHA-256', content)))).map(b => b.toString(16).padStart(2, '0')).join('')
 export class VirtualFS {
 
 	private db: DB;
@@ -23,9 +25,12 @@ export class VirtualFS {
 		this.db = new DB(dbName);
 		this.db.requireStore('volumes', 'id', false);
 		this.db.requireIndex('volumes', 'parentVolumeId', { keys: 'parentVolumeId', unique: false });
+		this.db.requireIndex('volumes', 'name', { keys: 'name', unique: false });
+		this.db.requireIndex('volumes', 'tags', { keys: 'tags', unique: false, multiEntry: true });
+		this.db.requireStore('volumeMeta', 'id', false);
 		this.db.requireStore('entries', 'id', false);
 		this.db.requireIndex('entries', '[volume,path]', { keys: ['volume', 'path'], unique: true });
-		this.db.requireIndex('entries', 'tags', { keys: 'volume', unique: false });
+		this.db.requireIndex('entries', 'tags', { keys: 'tags', unique: false, multiEntry: true });
 		this.db.requireIndex('entries', 'volume', { keys: 'volume', unique: false });
 		this.db.requireIndex('entries', 'path', { keys: 'path', unique: false });
 		this.db.requireIndex('entries', '[volume,parentPath]', { keys: ['volume', 'parentPath'], unique: false });
@@ -40,10 +45,22 @@ export class VirtualFS {
 		this.watchers.forEach(watcher => watcher(value));
 		this.volumes[value.volume]?.notifyWatchers(value);
 	}
-	getVolumes = async (parentVolumeId: string = '') => await this.db.read(['volumes'], async (accessors) => accessors.volumes.find('parentVolumeId', parentVolumeId))
-	createVolume = async (id: string, meta: any = {}, parentVolumeId: string = '') => {
+	getVolumes = async (parentVolumeId: string = '') => await this.db.read(['volumes'], async accessors => accessors.volumes.find('parentVolumeId', parentVolumeId))
+	getTaggedVolumes = async (...tags: (string | string[])[]) => {
+		return await this.db.read(['volumes'], async accessors => (await accessors.volumes.find('tags', tags[0]) ?? []).filter(vol => !tags.find(tag => !vol.tags.includes(tag))));
+	}
+	getTaggedVolumesWithMeta = async (...tags: (string | string[])[]) => {
+		return await this.db.read(['volumes', 'volumeMeta'], async accessors => {
+			const ret = (await accessors.volumes.find('tags', tags[0]) ?? []).filter(vol => !tags.find(tag => !vol.tags.includes(tag)));
+			return await Promise.all(ret.map(async volume => ({ volume, meta: (await accessors.volumeMeta.get(volume.id))?.meta })));
+		});
+	}
+	createVolume = async (id: string, name: string, tags: string[], meta: Record<string, any>, parentVolumeId: string = '') => {
 		if (parentVolumeId != '' && !await this.getVolume(parentVolumeId)) throw new Error('Parent volume not found')
-		await this.db.write(['volumes'], async (accessors) => accessors.volumes.set({ id, meta, parentVolumeId }));
+		await this.db.write(['volumes', 'volumeMeta'], async accessors => {
+			accessors.volumes.set({ id, parentVolumeId, tags, name });
+			accessors.volumeMeta.set({ id, meta });
+		});
 		this.broadcast({ type: 'volumeAdded' }, id)
 		return await this.getVolume(id);
 	}
@@ -57,7 +74,7 @@ export class VirtualFS {
 
 	getVolume = async (id: string) => {
 		if (this.volumes[id]) return this.volumes[id];
-		const volume = await this.db.read(['volumes'], async (accessors) => accessors.volumes.get(id));
+		const volume = await this.db.read(['volumes'], async accessors => accessors.volumes.get(id));
 		if (!volume) throw new Error('Volume not found: ' + id);
 		return this.volumes[id] ??= new Volume(this, volume.id, this.db, this.dbName);
 	};
@@ -70,195 +87,216 @@ export class VirtualFS {
 }
 
 type Watcher = { callback: WatcherCallback; path?: string; }
-export class Volume {
-
-	constructor(public vfs: VirtualFS, public id: string, public db: DB, private dbName: string) { }
-	getMeta = async () => this.db.read(['volumes'], async (accessors) => (await accessors.volumes.get(this.id)).meta);
-	setMeta = async (meta: any) => {
-		const volume = await this.db.read(['volumes'], async (accessors) => accessors.volumes.get(this.id));
-		volume.meta = meta;
-		return this.db.write(['volumes'], async (accessors) => accessors.volumes.set(volume));
+class VolumeReader<T extends Reader = Reader> {
+	constructor(protected volumeId: string, protected accessors: Record<string, T>) { }
+	public getMeta = async () => (await this.accessors.volumeMeta.get(this.volumeId))?.meta;
+	public exists = async (path: string) => (await this.accessors.entries.findOne('[volume,path]', [this.volumeId, (sanitizePath(path))])) != null;
+	public getById = async (id: string) => await this.accessors.entries.get<FSEntry>(id);
+	public getStats = (inputPath: string) => this.accessors.entries.findOne<FSEntry>('[volume,path]', [this.volumeId, sanitizePath(inputPath)]);
+	public readText = (inputPath: string) => this.readFile<string>(inputPath, 'string');
+	public readBinary = (inputPath: string) => this.readFile<Uint8Array>(inputPath, 'binary');
+	public async readFile<T extends string | Uint8Array = Uint8Array>(inputPath: string, encoding: 'string' | 'binary'): Promise<T> {
+		const stats = await this.getStats(inputPath);
+		if (!stats || stats.type !== 'file') throw new Error('File not found: ' + inputPath);
+		const content = (await this.accessors.content.get(stats.hash!)).content;
+		return encoding == 'string' ? new TextDecoder().decode(content as Uint8Array) as T : content as T;
+	}
+	private getFilesInDir = async (parentPath: string, recursive: boolean, ret: FSEntry[] = []) => {
+		const entries = await this.accessors.entries.find('[volume,parentPath]', [this.volumeId, parentPath]);
+		ret.push(...entries);//.map(f => ({ path: f.path, type: f.type, id: f.id, created: f.created, modified: f.modified, size: f.size, hash: f.hash })));
+		if (!recursive) return ret;
+		const subdirs = entries.filter(f => f.type === 'dir');
+		for (const subdir of subdirs) await this.getFilesInDir(subdir.path, recursive, ret);
+		return ret;
 	};
+	public async readDir(path: string, recursive: boolean = true): Promise<FSEntry[]> {
+		if ((path = sanitizePath(path)) != '' && (await this.getStats(path))?.type != 'dir') throw new Error('Not a directory');
+		return await this.getFilesInDir(path, recursive);
+	}
+
+}
+class VolumeWriter extends VolumeReader<Writer> {
+
+
+	private removals: Record<string, Set<string>> = {};
+	constructor(volumeId: string, accessors: Record<string, Writer>, private operations: Operation[]) { super(volumeId, accessors) }
+	private getSize = (content: any) => content.length ?? content.size ?? content.byteLength ?? 0;
+	private trackRemoval(hash: string, fileId: string) {
+		this.removals[hash] ??= new Set;
+		this.removals[hash].add(fileId);
+	}
+	async execute<T>(handler: (writer: VolumeWriter) => (Promise<T> | T)) {
+		const ret = await handler(this);
+		// console.log('executed', handler, this.operations);
+		if (this.operations.find(op => op.type != 'versionChanged')) await this.incrementVersion();
+		await this.checkRemovals();
+		return ret;
+	}
+	private incrementVersion = async () => {
+		const volume = await this.accessors.volumes.get(this.volumeId);
+		if (!volume) return;
+		volume.version = (volume.version ??= 0) + 1;
+		this.accessors.volumes.set(volume);
+		this.operations.push({ type: 'versionChanged', version: volume.version })
+	}
+	public resetVersion = async () => {
+		const volume = await this.accessors.volumes.get(this.volumeId)
+		volume.version = volume.version = 0;
+		this.accessors.volumes.set(volume);
+		this.operations.push({ type: 'versionChanged', version: 0 })
+	}
+	public mkdir = async (path: string, recursive: boolean = true): Promise<string | undefined> => {
+		if ((path = sanitizePath(path)) == '') return;
+		const parts = path.split('/');
+		if (parts.length == 0) return;
+		let ret: string | undefined = undefined;
+		do {
+			const path = parts.join('/');
+			const current = await this.accessors.entries.findOne('[volume,path]', [this.volumeId, path]);
+			if (current?.type === 'file') throw new Error(`Cannot create directory ${path}, file exists`);
+			if (!current) {
+				const id = generateUniqueId();
+				ret ??= id;
+				this.accessors.entries.set({ id: id, type: 'dir', volume: this.volumeId, path: path, parentPath: parts.slice(0, -1).join('/'), created: Date.now(), modified: Date.now() });
+				this.operations.push({ path, type: 'mkdir', id });
+			}
+			parts.pop();
+		} while (parts.length > 0 && recursive);
+		return ret;
+	}
+	public async writeFile(path: string, content: Uint8Array, hash: string) {
+		path = sanitizePath(path);
+		const parentPath = path.split('/').slice(0, -1).join('/');
+		await this.mkdir(parentPath, true);
+
+		const currentFile = await this.accessors.entries.findOne('[volume,path]', [this.volumeId, path]);
+		if (currentFile?.type == 'dir') throw new Error('Cannot write to a directory');
+		const id = currentFile?.id ?? generateUniqueId();
+		const created = currentFile?.created ?? Date.now();
+		this.accessors.entries.set({ id, type: 'file', volume: this.volumeId, path, parentPath, size: this.getSize(content), created, modified: Date.now(), hash });
+		if (currentFile?.hash != hash) {
+			if (currentFile) this.trackRemoval(currentFile!.hash, currentFile.id);
+			const currentContent = await this.accessors.content.get(hash);
+			if (!currentContent) {
+				this.accessors.content.set({ hash, content: content as Uint8Array });
+			}
+		}
+		this.operations.push({ path, type: 'writeFile', id, hash });
+		return id;
+	}
+	public rename = async (currentPath: string, newPath: string) => {
+		const renameEntry = async (entry: FSEntry, newPath: string) => {
+			if (!entry) throw new Error('File not found');
+			const newParentPath = newPath.split('/').slice(0, -1).join('/');
+			this.accessors.entries.set({ ...entry, path: newPath, parentPath: newParentPath, modified: Date.now() });
+			this.operations.push({ path: entry.path, oldPath: currentPath, type: 'rename', id: entry.id });
+			if (entry.type === 'dir') {
+				const entries = await this.accessors.entries.find<FSEntry>('[volume,parentPath]', [this.volumeId, entry.path]);
+				for (const subdir of entries) await renameEntry(subdir, sanitizePath(newPath + '/' + subdir.path.slice(entry.path.length)));
+			}
+		};
+		const entry = await this.accessors.entries.findOne('[volume,path]', [this.volumeId, sanitizePath(currentPath)]);
+		await renameEntry(entry, sanitizePath(newPath));
+	}
+	public unlink = async (path: string) => {
+		const unlink = async (entry: FSEntry) => {
+			if (!entry) throw new Error('File not found');
+			if (entry.type === 'dir') {
+				for (const subdir of await this.accessors.entries.find<FSEntry>('[volume,parentPath]', [this.volumeId, entry.path])) await unlink(subdir);
+			} else this.trackRemoval(entry.hash!, entry.id);
+			this.accessors.entries.delete(entry.id);
+			this.operations.push({ path: entry.path, type: 'unlink', id: entry.id });
+		};
+		const entry = await this.accessors.entries.findOne('[volume,path]', [this.volumeId, sanitizePath(path)]);
+		await unlink(entry);
+	}
+	public clear = async () => {
+		const entries = await this.accessors.entries.find('volume', this.volumeId);
+		const contents: Record<string, string[]> = {}
+		entries.forEach(entry => {
+			this.accessors.entries.delete(entry.id);
+			contents[entry.hash] ??= [];
+			contents[entry.hash].push(entry.id);
+			this.trackRemoval(entry.hash, entry.id);
+			this.operations.push({ path: entry.path, type: 'unlink', id: entry.id });
+		});
+	}
+	public delete = async () => {
+		await this.clear();
+		this.accessors.volumes.delete(this.volumeId);
+	}
+
+	public setMeta = (meta: any) => this.accessors.volumeMeta.set({ id: this.volumeId, meta });
+	async checkRemovals() {
+		for (let hash in this.removals) {
+			const exceptions = this.removals[hash];
+			const entries = (await this.accessors.entries.find('hash', hash)).filter(f => !exceptions.has(f.id));
+			if (entries.length == 0) {
+				this.accessors.content.delete(hash);
+			}
+		}
+	}
+
+}
+const allStores = ['entries', 'content', 'volumes', 'volumeMeta'];
+export class Volume {
 	private watchers: Set<Watcher> = new Set;
-	notifyWatchers = (detail: WatcherEvent) => this.watchers.forEach(watcher => {
+
+	constructor(public readonly vfs: VirtualFS, public readonly id: string, public readonly db: DB, private dbName: string) { }
+
+	public watch = (callback: WatcherCallback, path?: string) => this.watchers.add({ callback, path });
+	public unwatch = (callback: WatcherCallback) => this.watchers.delete([...this.watchers].find(w => w.callback == callback)!);
+	public removeWatchers = () => this.watchers.clear();
+	public notifyWatchers = (detail: WatcherEvent) => this.watchers.forEach(watcher => {
 		detail = { ...detail, operations: watcher.path ? detail.operations.filter(op => (op as FileOperation).path?.startsWith(watcher.path ?? '')) : detail.operations };
 		return detail.operations.length == 0 ? undefined : watcher.callback(detail);
-	})
-	watch = (callback: WatcherCallback, path?: string) => this.watchers.add({ callback, path });
-	unwatch = (callback: WatcherCallback) => this.watchers.delete([...this.watchers].find(w => w.callback == callback)!);
-	private broadcast(operations: Operation | Operation[]) {
-		operations = [operations].flat();
+	});
+
+	public readTxn = <T>(handler: (reader: VolumeReader) => Promise<T>, stores?: string[]) => this.db.read(stores ?? allStores, accessors => handler(new VolumeReader(this.id, accessors)))
+	public writeTxn = async<T>(handler: (writer: VolumeWriter) => (Promise<T> | T), stores?: string[]) => {
+		const operations: Operation[] = [];
+		const result = await this.db.write(stores ?? allStores, accessors => new VolumeWriter(this.id, accessors, operations).execute(handler));
+		this.broadcast(operations);
+		return result;
+	}
+
+	public getMeta = () => this.readTxn(reader => reader.getMeta());
+	public setMeta = (meta: any) => this.writeTxn(writer => writer.setMeta(meta));
+	public readText = (path: string) => this.readTxn(reader => reader.readText(path));
+	public readBinary = (path: string) => this.readTxn(reader => reader.readBinary(path));
+	public readFile = <T extends string | Uint8Array>(path: string, encoding: 'string' | 'binary') => this.readTxn<T>(reader => reader.readFile(path, encoding))
+	public getStats = (inputPath: string) => this.readTxn(reader => reader.getStats(inputPath))
+	public getById = (id: string) => this.readTxn(reader => reader.getById(id));
+	public readDir = (inputPath: string, recursive: boolean = true) => this.readTxn(reader => reader.readDir(inputPath, recursive));
+	public exists = (path: string) => this.readTxn(reader => reader.exists(path));
+	public mkdir = (path: string, recursive: boolean = true) => this.writeTxn(writer => writer.mkdir(path, recursive))
+	public prepFiles = (files: { path: string, content?: string | Uint8Array, type: 'dir' | 'file' }[]) => {
+		return Promise.all(files.map(file => ({ path: file.path, type: file.type, content: file.content ? normalizeContent(file.content) : undefined })).map(async file => {
+			return { path: file.path, content: file.content, type: file.type, hash: file.content ? await hashContents(file.content) : undefined }
+		}))
+	}
+	public writeFile = async (path: string, content: string | Uint8Array) => {
+		const hash = await hashContents(content = normalizeContent(content));
+		return this.writeTxn(writer => writer.writeFile(path, content, hash));
+	};
+	public rename = (currentPath: string, newPath: string) => this.writeTxn(writer => writer.rename(currentPath, newPath));
+	public unlink = (path: string) => this.writeTxn(writer => writer.unlink(path));
+	public clear = () => this.writeTxn(writer => writer.clear());
+	public delete = () => this.writeTxn(writer => writer.delete());
+	public resetVersion = () => this.writeTxn(writer => writer.resetVersion(), ['volumes']);
+
+	private broadcast(operations: Operation[]) {
 		if (operations.length == 0) return;
 		const detail = { operations, timestamp: Date.now(), volume: this.id };
 		this.notifyWatchers(detail);
 		localStorage?.setItem(`${this.dbName}/change`, JSON.stringify(detail))
-	}
-	async readText(inputPath: string): Promise<string> { return this.read(inputPath, 'string'); }
-	async readBinary(inputPath: string): Promise<Uint8Array> { return this.read(inputPath, 'binary'); }
-	private async read<T extends string | Uint8Array = Uint8Array>(inputPath: string, encoding: 'string' | 'binary'): Promise<T> {
-		const path = sanitizePath(inputPath);
-		const ret = await this.db.read(['entries', 'content'], async (accessors) => {
-			const file = await accessors.entries.findOne('[volume,path]', [this.id, path]);
-			if (!file || file.type !== 'file') throw new Error('File not found: ' + path);
-			return (await accessors.content.get(file.hash)).content;
-		});
-		return encoding == 'string' ? new TextDecoder().decode(ret as Uint8Array) as T : ret as T;
-	}
-	getStats = (inputPath: string): Promise<FSEntry | undefined> => {
-		return this.db.read(['entries'], async (accessors) => await accessors.entries.findOne('[volume,path]', [this.id, (sanitizePath(inputPath))]));
-	}
-	readDir(inputPath: string, recursive: boolean = true): Promise<FSEntry[]> {
-		const path = sanitizePath(inputPath);
-		return this.db.read(['entries'], async (accessors) => {
-			if (path != '') {
-				const dir = await accessors.entries.findOne('[volume,path]', [this.id, path]);
-				if (!dir) throw new Error(`Directory not found: ${path} ${inputPath}`);
-				if (dir.type != 'dir') throw new Error('Not a directory');
-			}
-			const ret: FSEntry[] = [];
-			const getFilesInDir = async (parentPath: string) => {
-				const entries = await accessors.entries.find('[volume,parentPath]', [this.id, parentPath]);
-				ret.push(...entries.map(f => ({ path: f.path, type: f.type, id: f.id, created: f.created, modified: f.modified, size: f.size, hash: f.hash })));
-				if (!recursive) return;
-				const subdirs = JSON.parse(JSON.stringify(entries.filter(f => f.type === 'dir')));
-				for (const subdir of subdirs) await getFilesInDir(subdir.path);
-			};
-			await getFilesInDir(path);
-			return ret;
-		});
-	}
-	async writeFile(path: string, content: string | Uint8Array): Promise<string> {
-		path = sanitizePath(path);
-		content = this.normalizeContent(content);
-		const parentPath = path.split('/').slice(0, -1).join('/');
-		const hash = await this.hashContents(content);
-		await this.mkdir(parentPath, true);
-		const id = await this.db.write(['entries', 'content'], async (accessors) => {
-			const currentFile = await accessors.entries.findOne('[volume,path]', [this.id, path]);
-			if (currentFile?.type == 'dir') throw new Error('Cannot write to a directory');
-			const id = currentFile?.id ?? generateUniqueId();
-			const created = currentFile?.created ?? Date.now();
-			accessors.entries.set({ id, type: 'file', volume: this.id, path, parentPath, size: this.getSize(content), created, modified: Date.now(), hash });
-			if (currentFile?.hash != hash) {
-				if (currentFile) await Volume.removeContentIfNeeded(currentFile.hash, accessors.entries, accessors.content, [currentFile.id]);
-				const currentContent = await accessors.content.get(hash);
-				if (!currentContent) {
-					accessors.content.set({ hash, content: content as Uint8Array });
-				}
-			}
-			return id as string;
-		});
-		this.broadcast({ path, type: 'writeFile', id, hash });
-		return id;
-	}
-	normalizeContent = (content: string | Uint8Array): Uint8Array => typeof content === 'string' ? new TextEncoder().encode(content) : content
-	static async removeContentIfNeeded(hash: any, entriesAccessor: Writer, contentAccessor: Writer, exceptions: string[]) {
-		const entries = (await entriesAccessor.find('hash', hash)).filter(f => !exceptions.includes(f.id));
-		if (entries.length == 0) contentAccessor.delete(hash);
-	}
-	async hashContents(content: Uint8Array): Promise<string> {
-		return Array.from(new Uint8Array((await crypto.subtle.digest('SHA-256', content)))).map(b => b.toString(16).padStart(2, '0')).join('');
-	}
-	async mkdir(inputPath: string, recursive: boolean = true): Promise<string | undefined> {
-		if (inputPath == '') return;
-		const path = sanitizePath(inputPath);
-		const parts = path.split('/');
-		if (parts.length == 0) return;
-		const operations: FileOperation[] = [];
-		const id = await this.db.write(['entries'], async (accessors) => {
-			let ret: string | undefined = undefined;
-			do {
-				const path = parts.join('/');
-				const current = await accessors.entries.findOne('[volume,path]', [this.id, path]);
-				if (current?.type === 'file') throw new Error(`Cannot create directory ${path}, file exists`);
-				if (!current) {
-					const id = generateUniqueId();
-					ret ??= id;
-					accessors.entries.set({ id: id, type: 'dir', volume: this.id, path: path, parentPath: parts.slice(0, -1).join('/'), created: Date.now(), modified: Date.now() });
-					operations.push({ path, type: 'mkdir', id });
-				}
-				parts.pop();
-			} while (parts.length > 0 && recursive);
-			return ret;
-		});
-		this.broadcast(operations);
-		return id;
-	}
-	async exists(path: string): Promise<boolean> {
-		return await this.db.read(['entries'], async (accessors) => await accessors.entries.findOne('[volume,path]', [this.id, (sanitizePath(path))]) != null);
-	}
-	async unlink(inputPath: string): Promise<void> {
-		const path = sanitizePath(inputPath);
-		const operations: FileOperation[] = [];
-		await this.db.write(['entries', 'content'], async (accessors) => {
-			const unlink = async (path: string) => {
-				const file = await accessors.entries.findOne('[volume,path]', [this.id, path]);
-				if (!file) throw new Error('File not found');
-				if (file.type === 'dir') {
-					for (const subdir of await accessors.entries.find('[volume,parentPath]', [this.id, path])) await unlink(subdir.path);
-				} else Volume.removeContentIfNeeded(file.hash, accessors.entries, accessors.content, [file.id])
-				accessors.entries.delete(file.id);
-				operations.push({ path, type: 'unlink', id: file.id });
-			};
-			await unlink(path);
-		});
-		this.broadcast(operations);
-	}
-	async rename(inputPath: string, newPath: string): Promise<void> {
-		const operations: FileOperation[] = [];
-		await this.db.write(['entries'], async (accessors) => {
-			const path = sanitizePath(inputPath);
-			const newpath = sanitizePath(newPath);
-			const rename = async (path: string, newPath: string) => {
-				const entry = await accessors.entries.findOne('[volume,path]', [this.id, path]);
-				if (!entry) throw new Error('File not found');
-				operations.push({ path: newPath, oldPath: path, type: 'rename', id: entry.id });
-				if (entry.type === 'dir') {
-					const entries = await accessors.entries.find('[volume,parentPath]', [this.id, path]);
-					for (const subdir of entries) await rename(subdir.path, newPath + subdir.path.slice(path.length));
-				}
-				const newParentPath = newPath.split('/').slice(0, -1).join('/');
-				accessors.entries.set({ ...entry, path: newPath, parentPath: newParentPath, modified: Date.now() });
-
-			};
-			await rename(path, newpath);
-		});
-		this.broadcast(operations);
-	}
-	getSize = (content: any) => content.length ?? content.size ?? content.byteLength ?? 0;
-	getById = async (id: string) => (await this.db.read(['entries'], async (accessors) => await accessors.entries.get(id))) as FSEntry;
-	close = () => this.watchers = new Set;
-	async delete() {
-		await this.db.write(['entries', 'content', 'volumes'], async (accessors) => {
-			const entries = await accessors.entries.find('volume', this.id);
-			const contents: Record<string, string[]> = {}
-			entries.forEach(file => {
-				accessors.entries.delete(file.id);
-				contents[file.hash] ??= [];
-				contents[file.hash].push(file.id);
-			});
-			for (let hash in contents) await Volume.removeContentIfNeeded(hash, accessors.entries, accessors.content, contents[hash]);
-			accessors.volumes.delete(this.id);
-		});
-	}
-	async clear() {
-		await this.db.write(['entries', 'content'], async (accessors) => {
-			const entries = await accessors.entries.find('volume', this.id);
-			const contents: Record<string, string[]> = {}
-			entries.forEach(file => {
-				accessors.entries.delete(file.id);
-				contents[file.hash] ??= [];
-				contents[file.hash].push(file.id);
-			});
-			for (let hash in contents) await Volume.removeContentIfNeeded(hash, accessors.entries, accessors.content, contents[hash]);
-		});
 	}
 	async zipFolder(path: string, zip?: JSZip, prefixPath: string = '') {
 		path = sanitizePath(path);
 		if (path != '') path += '/';
 		prefixPath = sanitizePath(prefixPath);
 		zip ??= new JSZip();
-		await this.db.read(['entries', 'content'], async (accessors) => {
+		await this.db.read(['entries', 'content'], async accessors => {
 			const entries = (await accessors.entries.find('volume', this.id)).filter(f => f.path.startsWith(path));
 			for (const entry of entries) {
 				const destPath = sanitizePath(prefixPath + '/' + entry.path.slice(path.length));
@@ -266,16 +304,5 @@ export class Volume {
 			}
 		});
 		return zip;
-	}
-
-	async cloneTo(targetVolume: Volume, srcPath: string = '', targetPath: string = '') {
-		srcPath = sanitizePath(srcPath);
-		if (srcPath != '') srcPath += '/';
-		targetPath = sanitizePath(targetPath) + '/';
-		await this.db.write(['entries'], async (accessors) => {
-			const entries = (await accessors.entries.find('volume', this.id)).filter(f => f.path.startsWith(srcPath));
-			entries.forEach(entry => accessors.entries.set({ ...entry, volume: targetVolume.id, path: sanitizePath(targetPath + '/' + entry.path.slice(srcPath.length)) }));
-		});
-		return targetVolume;
 	}
 }

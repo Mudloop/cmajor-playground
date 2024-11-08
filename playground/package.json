@@ -4,9 +4,10 @@
 		"build": "bun build --entrypoints ./src/index.ts --outdir ../docs/bundle --root '.' --target browser --packages bundle --sourcemap=linked --entry-naming js/[name].[ext] --asset-naming assets/[dir]/[name].[ext] --minify",
 		"build:previews": "bun build --entrypoints ./src/previews/index.ts --outdir ../docs/bundle --root '.' --target browser --packages bundle --sourcemap=linked --entry-naming js/previews.[ext] --asset-naming assets/[dir]/[name].[ext] --minify",
 		"build:embedder": "bun build --entrypoints ./src/embedder/index.ts --outdir ../docs/bundle --root '.' --target browser --packages bundle --sourcemap=linked --entry-naming js/embedder.[ext] --asset-naming assets/[dir]/[name].[ext] --minify",
+		"build:libraries": "bun build --entrypoints ./src/libraries/*.ts --outdir ../docs/bundle/js/lib --target browser --packages bundle --sourcemap=linked --minify",
 		"build:html": "bun build --entrypoints ./assets/html/index.html ./assets/html/preview.html ./assets/html/embed-demo.html --outdir ../docs --target browser --asset-naming [name].[ext] --entry-naming ../artifacts/temp/[name].[ext]",
-		"build:service-worker": "bun build --entrypoints ./src/service-worker/service.worker.ts --outdir ../docs --target browser --entry-naming [name].[ext]  --asset-naming services/[name].[ext] --minify",
-		"watch": "bun run build --watch & bun run build:html --watch & bun run build:service-worker --watch & bun run build:previews --watch & bun run build:embedder --watch",
+		"build:service-worker": "bun build --entrypoints ./src/service-worker/service.worker.ts --outdir ../docs --target browser --entry-naming [name].[ext] --asset-naming services/[name].[ext] --minify",
+		"watch": "bun run build --watch & bun run build:html --watch & bun run build:service-worker --watch & bun run build:previews --watch & bun run build:embedder --watch & bun run build:libraries --watch",
 		"serve": "bun web-dev-server --node-resolve --watch --root-dir ../docs --open",
 		"start": "npm run watch & npm run serve"
 	},

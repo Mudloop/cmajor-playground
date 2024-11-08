@@ -1,4 +1,4 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css } from "lit";
 import { customElement } from "lit/decorators";
 import PianoKeyboard from './cmaj_api/cmaj-piano-keyboard.js';
 import { Manifest } from "../types.js";
@@ -86,6 +86,7 @@ import { RendererOptions } from "../../core/types.js";
 	init = async (options: RendererOptions) => {
 		const manifest = options.data.manifest as Manifest;
 		const code = options.data.code as string;
+		console.log({ code });
 		const version = options.data.version as string;
 		const connection = this.connection = new helpers.AudioWorkletPatchConnection(manifest);
 		connection.addAllParameterListener(async () => {

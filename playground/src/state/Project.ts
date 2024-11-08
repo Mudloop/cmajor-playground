@@ -16,20 +16,20 @@ export class Project {
 	onFilesChange = new Trigger;
 	fs: MagicFS;
 	buildManager: BuildManager;
+	get modified() {
+		return this.info.version > 0;
+	}
 	constructor(public info: ProjectInfo, public volume: Volume) {
 		this.fs = new MagicFS(volume);
+		console.log('Project', info);
 		volume.watch(async (details) => {
-			if (!this.info.modified) {
-				this.info.modified = true;
-				volume.getMeta().then(async meta => {
-					await volume.setMeta({ ...meta, modified: true });
-					this.onChange.trigger();
-				});
-			}
+			console.log('watcher', details);
 			for (let detail of details.operations) {
 				if (detail.type == 'volumeRemoved') document.location = document.location;
+				if (detail.type == 'versionChanged') this.info.version = detail.version!;
 				if (detail.type == 'unlink') this.closeFile(detail.id);
 			}
+			console.log(this.info.version);
 			this.onFilesChange.trigger();
 		});
 		this.buildManager = new BuildManager(this, App.builders);
@@ -131,8 +131,8 @@ export class Project {
 	}
 	async reset() {
 		await this.volume.clear();
-		const meta = await this.volume.getMeta()
-		await this.volume.setMeta({ ...meta, modified: false });
+		// const meta = await this.volume.getMeta()
+		// await this.volume.setMeta({ ...meta, modified: false });
 		this.onChange.trigger();
 	}
 }

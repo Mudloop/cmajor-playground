@@ -43,7 +43,7 @@ export type ProjectInfo = {
 	name: string;
 	id: string;
 	source?: ProjectSourceInfo;
-	modified?: boolean;
+	version: number;
 };
 export type ProjectTemplate = (name: string) => Promise<SourceFile[]> | SourceFile[];
 export type AppConfig = {
@@ -58,7 +58,7 @@ export type AppConfig = {
 };
 export type ProjectSourceInfo = {
 	type: string;
-	identifier?: string;
+	identifier: string;
 	meta?: any;
 };
 export type ProjectSource = {

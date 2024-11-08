@@ -7,7 +7,7 @@ import { COMMON_STYLES } from './common-styles';
 import { keyed } from 'lit/directives/keyed';
 import { Modals } from './Modals';
 import { ContextManager, Trigger } from '@cmajor-playground/utilities';
-import { App, examples, ZipLoader } from '../state';
+import { App, examples, ProjectInfo, ZipLoader } from '../state';
 export enum Layout { Horizontal = 'horizontal', Vertical = 'vertical' }
 import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
 import { CmajLanguageDefinition, FaustLanguageDefinition } from '../languages';
@@ -325,20 +325,25 @@ await App.init({
 		this.requestUpdate();
 	}
 
-	async resetProject() {
-		if (this.project!.info.modified) {
-			if (!await Modals.confirm('Reset project?', `Are you sure you want to reset '${this.project?.info.name}'?`)) return;
+	async resetProject(projectInfo?: ProjectInfo) {
+		projectInfo ??= this.project!.info;
+		if (projectInfo.version > 0) {
+			if (!await Modals.confirm('Reset project?', `Are you sure you want to reset '${projectInfo.name}'?`)) return;
 		}
-		// await this.project!.reset();
-		await App.deleteProject(this.project!.info.id);
-		let qs = new URLSearchParams(location.search);
-		let demo = qs.get('demo')
-		if (demo) {
-			const url = Object.entries(examples).find(([key, url]) => key == demo)?.[1];
-			const info = await App.importProject(import.meta.resolve(url!));
-			await this.loadProject(info!.id, false);
-		} else {
-			await this.loadProject();
-		}
+		// await App.deleteProject(projectInfo.id);
+		// if (projectInfo.id == this.project?.info.id) {
+		// 	let qs = new URLSearchParams(location.search);
+		// 	let demo = qs.get('demo')
+		// 	if (demo) {
+		// 		const url = Object.entries(examples).find(([key, url]) => key == demo)?.[1];
+		// 		const info = await App.importProject(import.meta.resolve(url!));
+		// 		await this.loadProject(info!.id, false);
+		// 	} else {
+		// 		await this.loadProject();
+		// 	}
+		// }
+		await App.resetProject(projectInfo.id);
+		this.requestUpdate();
+		this.onChange.trigger();
 	}
 }

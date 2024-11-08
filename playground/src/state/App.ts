@@ -1,4 +1,4 @@
-import { generateUniqueId, MagicFS, VirtualFS, Volume } from "@cmajor-playground/utilities"
+import { generateUniqueId, MagicFS, sanitizePath, VirtualFS, Volume } from "@cmajor-playground/utilities"
 import { Project } from "./Project";
 import { ProjectTemplate, ProjectSource, AppConfig, ProjectInfo, ProjectSourceInfo, SourceFile, LanguageDefinition } from "./Types";
 import monaco from '@cmajor-playground/bunaco';
@@ -19,6 +19,7 @@ export class App {
 		this.templates = config.templates ?? {};
 		this.sources = config.sources ?? {};
 		this.vfs = new VirtualFS(config.vfs);
+		(window as any).vfs = this.vfs;
 		this.builders = config.builders;
 		config.languages.forEach(language => this.registerLanguage(language));
 		const json = monaco.languages.getLanguages().find(lang => lang.extensions?.includes('.json'))
@@ -36,15 +37,14 @@ export class App {
 	}
 	static generateProjectName = async () => `Untitled ${++this.lastProjectNumber}`;
 	static getProjectInfo = async (id: string | undefined) => (await this.listProjects()).find(p => p.id == id)
-	static listProjects = async (): Promise<ProjectInfo[]> => (await this.vfs.getVolumes()).filter(volume => volume.meta.isProject).map(volume => {
-		return { id: volume.id, name: volume.meta.name, source: volume.meta.source, modified: volume.meta.modified };
+	static listProjects = async (): Promise<ProjectInfo[]> => (await this.vfs.getTaggedVolumesWithMeta('project')).map(({ volume, meta }) => {
+		return { id: volume.id, name: volume.name, source: meta.source, version: volume.version };
 	});
 	static openProject = async (id?: string, remember: boolean = true) => {
 		id ??= this.lastOpenedProject;
 		const info = await this.getProjectInfo(id) ?? await this.createProject();
 		if (!info) throw new Error('Failed to open project');
 		const projectVolume = await this.vfs.getVolume(info.id);
-		const artifacts = await this.vfs.createVolume([info.id, 'artifacts'].join(':'), {}, info.id);
 		if (remember || !this.lastOpenedProject) {
 			this.lastOpenedProject = info.id;
 		}
@@ -55,21 +55,46 @@ export class App {
 		name ??= await this.generateProjectName();
 		files = !files || typeof files == 'string' ? await this.templates[files ?? 'default']?.(name) : files ?? [];
 		const id = generateUniqueId();
-		const projectVolume = await this.vfs.createVolume(id, { name, source, isProject: true });
-		for (let file of files) {
-			if (file.type == 'dir') await projectVolume.mkdir(file.path);
-			else await projectVolume.writeFile(file.path, file.content!);
-		}
+		const tags = source ? ['project', source.type, source.identifier] : ['project'];
+		const volume = await this.vfs.createVolume(id, name, tags, { source });
+		const prepped = await volume.prepFiles(files);
+		await volume.writeTxn(async writer => {
+			for (let file of prepped) {
+				if (file.type == 'dir') await writer.mkdir(file.path);
+				else await writer.writeFile(file.path, file.content!, file.hash!);
+			}
+		})
+		await volume.resetVersion();
 
 		return await this.getProjectInfo(id);
 	}
-	static importProject = async (identifier: string) => {
-		const projects = await this.listProjects();
+	static resetProject = async (id: string) => {
+		const volume = await this.vfs.getVolume(id);
+		const volumeMeta = await volume.getMeta();
+		const identifier = volumeMeta?.source?.identifier;
+		if (!identifier) return;
 		const sourceEntry = Object.entries(this.sources).find(([_, source]) => source.test(identifier));
 		if (!sourceEntry) throw new Error("Source not found");
 		const [type, source] = sourceEntry;
-		const current = projects.find(p => p.source?.type == type && p.source.identifier == identifier);
-		if (current) return current;
+		const { name, files, meta } = await source.import(identifier);
+		const prepped = await volume.prepFiles(files);
+		await volume.writeTxn(async writer => {
+			for (let file of prepped) {
+				if (file.type == 'dir') await writer.mkdir(file.path);
+				else await writer.writeFile(file.path, file.content!, file.hash!);
+			}
+			const entries = await writer.readDir('');
+			const removals = entries.filter(entry => !files.find(file => sanitizePath(file.path) == entry.path));
+			removals.forEach(entry => writer.unlink(entry.path));
+		})
+		await volume.resetVersion();
+	}
+	static importProject = async (identifier: string) => {
+		const sourceEntry = Object.entries(this.sources).find(([_, source]) => source.test(identifier));
+		if (!sourceEntry) throw new Error("Source not found");
+		const [type, source] = sourceEntry;
+		const current = await this.vfs.getTaggedVolumes('project', type, identifier);
+		if (current?.length) return current[0];
 		const { name, files, meta } = await source.import(identifier);
 		return await this.createProject(name, files, { type, identifier, meta });
 	}
@@ -79,3 +104,4 @@ export class App {
 		this.lastOpenedProject = this.lastOpenedProject == id ? projects[0]?.id ?? undefined : this.lastOpenedProject;
 	}
 }
+(window as any).App = App;

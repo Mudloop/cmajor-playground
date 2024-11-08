@@ -181,7 +181,6 @@ export class MagicFS {
 		return entry;
 	}
 	close = () => {
-		this._volume.unwatch(this._updateFiles);
-		this._volume.close();
+		this._volume.removeWatchers();
 	}
 }

@@ -4,6 +4,7 @@ import monaco from '@cmajor-playground/bunaco';
 import monacoCSS from "@cmajor-playground/bunaco/dist/monaco.css" with { type: 'text' };
 import { unsafeHTML } from "lit/directives/unsafe-html";
 import { FileEditorBase } from "./FileEditorBase";
+// monaco.languages.typescript.typescriptDefaults.addExtraLib()
 @customElement("cmaj-monaco-editor") export class MonacoEditor extends FileEditorBase {
 	static getLanguage = (extension?: string) => (monaco.languages.getLanguages().find(lang => lang.extensions?.includes('.' + extension) || lang.extensions?.includes(extension!)))?.id
 	static styles = css`
@@ -51,6 +52,7 @@ import { FileEditorBase } from "./FileEditorBase";
 			insertSpaces: false,
 			useTabStops: true
 		});
+		
 
 		this.monaco.onDidChangeModelContent(() => this.setEditorContent(this.monaco!.getValue()));
 		this.observer = new ResizeObserver(() => this.checkSize());

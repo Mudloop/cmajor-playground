@@ -74,7 +74,7 @@ import { COMMON_STYLES } from './common-styles';
 			<slot name="close"></slot>
 		</div>
 		${this.hideProjectPanel
-			? html`${this.playground.project?.info.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
+			? html`${this.playground.project?.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
 			: html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
 		${keyed(this.playground.project!.info.id, html`<cmaj-explorer .playground=${this.playground}></cmaj-explorer>`)}	
 	`

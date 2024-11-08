@@ -76,6 +76,12 @@ import { App } from "../state";
 		.tools {
 			display: flex;
 			gap: 0px;
+			width: 0;
+			overflow: hidden;
+		}
+		li:hover .tools {
+			width: fit-content;
+			overflow: unset;
 		}
 		.tools ui-icon {
 			position: relative;
@@ -124,7 +130,6 @@ import { App } from "../state";
 						<ui-icon slot="trigger" icon="tabler-chevron-down" currentColors></ui-icon>
 						
 						<ul>
-							
 							<li @click=${() => this.newProject('default')}><ui-icon currentStroke icon="tabler-plus"></ui-icon> New Project</li>
 							<li @click=${() => this.newProject('ui')}><ui-icon currentStroke icon="tabler-new-section"></ui-icon> New Project With Demo UI</li>
 							<li @click=${() => this.importURL()}><ui-icon currentStroke icon="tabler-link"></ui-icon> Import From URL</li>
@@ -144,9 +149,10 @@ import { App } from "../state";
 								class="${project.id == this.playground.project?.info.id ? 'selected' : ''}"
 								@click=${() => this.playground.loadProject(project.id)}
 							>
-								${this.isExample(project) ? html`<span class="${project.modified ? 'modified' : ''}">Demo</span> ${project.modified ? '• ' : ''}` : ''}
+								${this.isExample(project) ? html`<span class="${project.version > 0 ? 'modified' : ''}">Demo</span> ${project.version > 0 ? '• ' : ''}` : ''}
 								<label>${project.name}</label>
 								<div class="tools">
+									${this.isExample(project) && project.version > 0 ? html`<ui-icon currentStroke icon="tabler-reload" @click=${(e: Event) => this.resetProject(project, e)}></ui-icon>`:''}
 									<ui-icon currentStroke icon="tabler-download" @click=${(e: Event) => this.downloadProject(project, e)}></ui-icon>
 									<ui-icon currentColors class="close" icon="close" @click=${(e: Event) => this.deleteProject(project, e)}></ui-icon>
 								</div>
@@ -159,6 +165,11 @@ import { App } from "../state";
 		`;
 	};
 	projects?: ProjectInfo[];
+	private resetProject(project: ProjectInfo, e: Event) {
+		this.playground.resetProject(project);
+		e.stopPropagation();
+	}
+
 	protected firstUpdated(_changedProperties: PropertyValues): void {
 		this.playground.onChange.add(() => this.requestUpdate());
 	}
@@ -185,7 +196,7 @@ import { App } from "../state";
 	async deleteProject(project: ProjectInfo, e?: Event) {
 		e?.preventDefault();
 		e?.stopPropagation();
-		if (project.modified || !this.isExample(project)) {
+		if (project.version > 0 || !this.isExample(project)) {
 			if (!await Modals.confirm('Delete project?', `Are you sure you want to remove the project '${project.name}'?`)) return;
 		}
 		await App.deleteProject(project.id);
@@ -207,7 +218,7 @@ import { App } from "../state";
 		e.stopPropagation();
 		const volume = await App.vfs.getVolume(project.id);
 		const zip = await volume.zipFolder('');
-		if (project.id != this.playground.project?.info.id) volume.close();
+		if (project.id != this.playground.project?.info.id) volume.removeWatchers();
 		const blob = await zip.generateAsync({ type: 'blob' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
@@ -226,7 +237,7 @@ import { App } from "../state";
 			while (usedNames.has(name)) name = project.name + ' (' + ++i + ')';
 			usedNames.add(name);
 			await volume.zipFolder('', zip, name);
-			if (project.id != this.playground.project?.info.id) volume.close();
+			if (project.id != this.playground.project?.info.id) volume.removeWatchers();
 		}
 		const blob = await zip.generateAsync({ type: 'blob' });
 		const url = URL.createObjectURL(blob);

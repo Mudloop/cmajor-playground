@@ -41,6 +41,7 @@ export class DB {
 								&& JSON.stringify(current.keyPath) == JSON.stringify(keys)) continue;
 							store.deleteIndex(name);
 						}
+						// console.log(name, keys, multiEntry);
 						store.createIndex(name, keys, { unique, multiEntry });
 					}
 				}
@@ -96,6 +97,7 @@ export class DB {
 			r.onsuccess = () => resolve(r.result);
 			r.onerror = (e) => reject(e);
 		}));
+		
 		await Promise.all(promises);
 		return result;
 	}
@@ -122,7 +124,7 @@ export class Reader {
 		request.onsuccess = () => resolve(request.result);
 		request.onerror = (e) => reject(e);
 	});
-	findOne = <T = any>(index: string, value: IDBValidKey | IDBKeyRange) => new Promise<T>((resolve, reject) => {
+	findOne = <T = any>(index: string, value: IDBValidKey | IDBKeyRange) => new Promise<T | undefined>((resolve, reject) => {
 		const request = this.store.index(index).get(value);
 		request.onsuccess = () => resolve(request.result);
 		request.onerror = (e) => reject(e);
