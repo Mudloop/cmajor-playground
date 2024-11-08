@@ -331,12 +331,12 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			<select @change=${(e: any) => this.type = e.target.value}>
 				<option value="node">None</option>
 				<option value="oscillator">Oscillator</option>
-				<option value="audio-file" disabled="">Audio File (TODO)</option>
+				<option value="audio-file" disabled="">Audio File</option>
 			</select>
 			${this.type == 'oscillator' ? html`
 				<select @change=${(e: any) => this.oscType = e.target.value}>
 					<option value="sine">Sine</option>
-					<option value="sawtooth">Sawtooth</option>
+					<option value="sawtooth">Saw</option>
 					<option value="square">Square</option>
 					<option value="triangle">Triangle</option>
 				</select>

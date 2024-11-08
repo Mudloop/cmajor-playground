@@ -1,8 +1,5 @@
-import logo from '../../assets/img/logo.png' with { type: 'file' };
 import { css, html, LitElement, PropertyValues } from "lit";
-import { customElement, property } from "lit/decorators";
-import { keyed } from "lit/directives/keyed";
-import { Playground } from "./Playground";
+import { customElement } from "lit/decorators";
 import { COMMON_STYLES } from './common-styles';
 import { GithubAuth } from '@cmajor-playground/utilities';
 
@@ -39,7 +36,7 @@ import { GithubAuth } from '@cmajor-playground/utilities';
 				</button>
 			`
 		: html`
-				<button @click=${(e: Event) => this.connectGithub(e)}>
+				<button style="flex:1" @click=${(e: Event) => this.connectGithub(e)}>
 					<ui-icon currentColors icon="github"></ui-icon>
 					<span>Connect</span>
 				</button>

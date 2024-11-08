@@ -30,7 +30,7 @@ import { RendererOptions } from "../../core/types.js";
 	root?: HTMLDivElement;
 	constructor() { super(); }
 	init = async (options: RendererOptions) => {
-		const meta = options.data.json;
+		const meta = options.data.json as FaustDspMeta;
 		options.ctx.destination.channelInterpretation = "discrete";
 		const wasm = base64ToBytes(options.data.wasm);
 		const module = new WebAssembly.Module(wasm);
@@ -51,6 +51,13 @@ import { RendererOptions } from "../../core/types.js";
 		this.root.style.transition = `all .25s ease`;
 		faustUI.paramChangeByUI = faustNode.setParamValue.bind(faustNode);
 		faustNode.setOutputParamHandler(faustUI.paramChangeByDSP.bind(faustUI));
+		if (faustNode.channelCount * faustNode.numberOfInputs > 0) {
+			const inputNodes: AudioNode[] = options.addInput('Input', faustNode.channelCount * faustNode.numberOfInputs);
+			const merger = options.ctx.createChannelMerger(inputNodes.length);
+			inputNodes.forEach((node, i) => node.connect(merger, 0, i));
+			merger.connect(faustNode!);
+		}
+		
 		root.style.minWidth = `${faustUI.minWidth}px`;
 		root.style.minHeight = `${faustUI.minHeight}px`;
 		faustNode.connect(options.ctx.destination);
