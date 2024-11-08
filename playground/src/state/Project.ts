@@ -21,15 +21,12 @@ export class Project {
 	}
 	constructor(public info: ProjectInfo, public volume: Volume) {
 		this.fs = new MagicFS(volume);
-		console.log('Project', info);
 		volume.watch(async (details) => {
-			console.log('watcher', details);
 			for (let detail of details.operations) {
 				if (detail.type == 'volumeRemoved') document.location = document.location;
 				if (detail.type == 'versionChanged') this.info.version = detail.version!;
 				if (detail.type == 'unlink') this.closeFile(detail.id);
 			}
-			console.log(this.info.version);
 			this.onFilesChange.trigger();
 		});
 		this.buildManager = new BuildManager(this, App.builders);
@@ -76,7 +73,6 @@ export class Project {
 	}
 	private createEditor = (file: MagicFile) => {
 		const ret = isBinary(mtype(file.path)) ? new FileViewer(file) : new MonacoEditor(file);
-		console.log(file.path, mtype(file.path), isBinary(mtype(file.path)));
 		ret.changeTrigger.add(() => this.onChange.trigger());
 		return ret;
 	}

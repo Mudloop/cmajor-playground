@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators";
 @customElement('flex-splitter') export class FlexSplitter extends LitElement {
-	@property({ type: 'string', attribute: true }) attach?: 'prev' | 'next' = 'prev';
+	@property({ type: String, attribute: true }) attach?: 'prev' | 'next' = 'prev';
 	static styles = css`
 		:host { display: block; padding: 1px; background-color: #666; }
 		dialog, dialog::backdrop { opacity: 0; }
