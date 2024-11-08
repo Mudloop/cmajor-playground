@@ -40,6 +40,7 @@ build/Release
 
 # Dependency directories
 /node_modules/
+/backend/node_modules/
 /builders/node_modules/
 /bunaco/node_modules/
 /playground/node_modules/
@@ -133,3 +134,6 @@ out
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Local Netlify folder
+.netlify

@@ -19,7 +19,6 @@
 		"tslib": "^2.7.0"
 	},
 	"dependencies": {
-		"@cmajor-playground/build-systems": "../build-systems",
 		"@cmajor-playground/builders": "../builders",
 		"@cmajor-playground/bunaco": "../bunaco",
 		"@cmajor-playground/utilities": "../utilities",
