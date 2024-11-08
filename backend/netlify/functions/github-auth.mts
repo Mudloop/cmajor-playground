@@ -9,7 +9,6 @@ const readLocalConfig = (path: string) => {
 
 export default async (req: Request, _context: Context) => {
 	const code = new URL(req.url).searchParams.get('code');
-	console.log('Has env?', Netlify.env.has('GITHUB_CLIENT_ID'));
 	const config = Netlify.env.has('GITHUB_CLIENT_ID') ? {
 		client_id: Netlify.env.get('GITHUB_CLIENT_ID'),
 		client_secret: Netlify.env.get('GITHUB_CLIENT_SECRET'),
@@ -24,7 +23,6 @@ export default async (req: Request, _context: Context) => {
 		});
 	}
 	const { client_id, client_secret, redirectUrl } = config;
-	console.log(client_id, client_secret, code);
 
 	if (!code) return new Response("Missing authorization code", { status: 400 });
 
