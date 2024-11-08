@@ -17,11 +17,9 @@ export const COMMON_STYLES = css`
 		display: none !important;
 	}
 	h4 {
-		
 		text-transform: uppercase;
 		font-size: 10px;
 		padding: 5px 10px;
-		padding-right: 5px;
 		font-weight: 600;
 		letter-spacing: 2px;
 		display: flex;
@@ -32,14 +30,22 @@ export const COMMON_STYLES = css`
 		text-transform: uppercase;
 		font-size: 12px;
 		padding: 5px 10px;
-		padding-right: 5px;
 		font-weight: 600;
 		letter-spacing: 2px;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 	}
-	
+	h2 {
+		text-transform: uppercase;
+		font-size: 16px;
+		padding: 5px 10px;
+		font-weight: 900;
+		letter-spacing: 2px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
 	h1, h2, h3, h4, h5, h6 {
 		margin: 0;
 	}

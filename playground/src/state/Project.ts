@@ -76,6 +76,7 @@ export class Project {
 	}
 	private createEditor = (file: MagicFile) => {
 		const ret = isBinary(mtype(file.path)) ? new FileViewer(file) : new MonacoEditor(file);
+		console.log(file.path, mtype(file.path), isBinary(mtype(file.path)));
 		ret.changeTrigger.add(() => this.onChange.trigger());
 		return ret;
 	}

@@ -10,7 +10,7 @@ export abstract class MagicFSEntry {
 	public onChange = new Trigger;
 	public onDelete = new Trigger;
 	public get name() { return this.path.split('/').at(-1) ?? ''; }
-	constructor(protected fs: MagicFS, public path: string, public id: string) { }
+	constructor(public readonly fs: MagicFS, public path: string, public id: string) { }
 	dispose() {
 		this.disposed = true;
 		this.onDispose();

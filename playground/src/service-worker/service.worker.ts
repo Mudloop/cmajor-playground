@@ -2,7 +2,7 @@ import { isBinary, sanitizePath, VirtualFS } from "@cmajor-playground/utilities"
 import { mtype } from "../mtype";
 import tsPath from './temp/ts.service.js' with {type: 'file'};
 const loc = new URL('.', location.href).href;
-const vfs = new VirtualFS('CmajPlayground');
+const vfs = new VirtualFS('CmajPlaygroundProjects');
 class ServiceRouter {
 	static init() {
 		self.addEventListener('fetch', (event: FetchEvent) => this.handleFetch(event));
