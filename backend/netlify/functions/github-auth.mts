@@ -46,7 +46,7 @@ export default async (req: Request, _context: Context) => {
 	const access_token = data.access_token;
 
 	if (access_token) {
-		const redirectWithToken = `${redirectUrl}?access_token=${access_token}`;
+		const redirectWithToken = `${redirectUrl}?github_access_token=${access_token}`;
 		return new Response(null, {
 			status: 302,
 			headers: { 'Location': redirectWithToken }

@@ -12,3 +12,4 @@ export * from './TaskManager';
 export * from './sanitizePath';
 export * from './base64ToBytes';
 export * from './ContextManager';
+export * from './GithubAuth';

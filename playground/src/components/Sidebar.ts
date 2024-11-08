@@ -6,9 +6,6 @@ import { Playground } from "./Playground";
 import { COMMON_STYLES } from './common-styles';
 
 @customElement('cmaj-sidebar') export class Sidebar extends LitElement {
-	githubAuth(e: any) {
-		window.open('https://github.com/login/oauth/authorize?client_id=Ov23li52ClmsCJFfVhqc', '_blank');
-	}
 	@property({ type: Boolean }) hideProjectPanel = false;
 	@property({ type: Object }) playground!: Playground;
 	static styles = css`
@@ -65,8 +62,29 @@ import { COMMON_STYLES } from './common-styles';
 			justify-content: flex-end;
 			padding: 4px;
 		}
+		main {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+			flex: 1;
+		}
+		flex-splitter {
+			position: relative;
+			background-color: transparent;
+		}
+		flex-splitter::after {
+			position: absolute;
+			content: '';
+			inset: -4px;
+			z-index: 1000;
+		}
+		flex-splitter:hover {
+			background-color: #e2b461;
+			transition: all 0.2s ease .1s;
+		}
 	`;
-	protected firstUpdated(_changedProperties: PropertyValues): void {
+	user: any;
+	protected firstUpdated(_changedProperties: PropertyValues) {
 		this.playground.onChange.add(() => this.requestUpdate());
 	}
 	render = () => html`
@@ -76,13 +94,13 @@ import { COMMON_STYLES } from './common-styles';
 			: html`<div class="logo"><img src="${new URL(logo, import.meta.url)}"><span>BETA</span></div>`}
 			<slot name="close"></slot>
 		</div>
-		<button @click=${e => this.githubAuth(e)}>
-			<ui-icon currentColors icon="github"></ui-icon>
-			Connect
-		</button>
-		${this.hideProjectPanel
-			? html`${this.playground.project?.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
-			: html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
-		${keyed(this.playground.project!.info.id, html`<cmaj-explorer .playground=${this.playground}></cmaj-explorer>`)}	
-	`
+		<cmaj-github-user-widget></cmaj-github-user-widget>
+		<main>
+			${this.hideProjectPanel
+				? html`${this.playground.project?.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
+				: html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
+			<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
+			${keyed(this.playground.project!.info.id, html`<cmaj-explorer .playground=${this.playground}></cmaj-explorer>`)}	
+		</main>
+	`;
 }

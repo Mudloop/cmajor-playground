@@ -12,3 +12,4 @@ export * from './Menu';
 export * from './ProductsPanel';
 export * from './Sidebar';
 export * from './Header';
+export * from './GithubUserWidget';

@@ -16,6 +16,7 @@ import { App } from "../state";
 		:host {
 			flex-direction: column;
 			background-color: #202223;
+			height: min(200px, 30%);
 		}
 		
 		ul {
@@ -26,7 +27,12 @@ import { App } from "../state";
 			margin: 0;
 			overflow-y: auto;
 			height: 100%;
-			max-height: 150px;
+			position: absolute;
+			inset: 0;
+		}
+		section {
+			position: relative;
+			height: 100%;
 		}
 		li {
 			padding: 4px 8px;

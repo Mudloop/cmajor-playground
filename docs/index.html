@@ -12,6 +12,7 @@
 			font-display: block;
 			src: url(./bundle/bunaco/dist/codicon.ttf) format("truetype");
 		}
+
 		body,
 		html {
 			margin: 0;
@@ -37,8 +38,16 @@
 
 <body>
 	<cmaj-playground></cmaj-playground>
-	<script src="./bundle/js/index.js" type="module"></script>
-	
+	<script type="module">
+		const qs = new URL(document.location.href).searchParams;
+		if (qs.has('github_access_token')) {
+			const token = qs.get('github_access_token');
+			localStorage.setItem('github_access_token', token);
+			document.location.replace('./');
+		} else {
+			import('./bundle/js/index.js');
+		}
+	</script>
 </body>
 
 </html>
