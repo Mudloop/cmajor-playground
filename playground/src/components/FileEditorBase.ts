@@ -1,5 +1,5 @@
 import { FileContents, MagicFile, Trigger } from "@cmajor-playground/utilities";
-import { LitElement, css } from "lit";
+import { LitElement, PropertyValues, css } from "lit";
 import { COMMON_STYLES } from "./common-styles";
 
 export abstract class FileEditorBase extends LitElement {
@@ -22,13 +22,7 @@ export abstract class FileEditorBase extends LitElement {
 		file.onChange.add(this.fileChanged);
 		file.onDelete.add(this.fileDeleted);
 		this.addEventListener('keydown', async (e: KeyboardEvent) => {
-			if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
-				e.preventDefault();
-				await this.file.write(this.editorContent!);
-				this.storedContent = this.editorContent;
-				this.isDirty = false;
-				this.changeTrigger.trigger();
-			}
+			await this.keydownHandler(e);
 		});
 	}
 	changeTrigger: Trigger = new Trigger();
@@ -45,6 +39,16 @@ export abstract class FileEditorBase extends LitElement {
 	private fileDeleted = () => {
 		// this.playground.close(editor);
 	}
+	protected keydownHandler = async (e: KeyboardEvent) => {
+		if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+			e.preventDefault();
+			await this.file.write(this.editorContent!);
+			this.storedContent = this.editorContent;
+			this.isDirty = false;
+			this.changeTrigger.trigger();
+		}
+	}
+
 	protected setEditorContent(content: FileContents) {
 		this.editorContent = content;
 		this.isDirty = this.storedContent != this.editorContent;

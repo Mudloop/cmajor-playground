@@ -5,6 +5,7 @@ import monacoCSS from "@cmajor-playground/bunaco/dist/monaco.css" with { type: '
 import { unsafeHTML } from "lit/directives/unsafe-html";
 import { FileEditorBase } from "./FileEditorBase";
 @customElement("cmaj-monaco-editor") export class MonacoEditor extends FileEditorBase {
+
 	static getLanguage = (extension?: string) => (monaco.languages.getLanguages().find(lang => lang.extensions?.includes('.' + extension) || lang.extensions?.includes(extension!)))?.id
 	static styles = css`
 		${FileEditorBase.styles}
@@ -19,6 +20,7 @@ import { FileEditorBase } from "./FileEditorBase";
 		#editor {
 			position: absolute;
 			inset: 6px;
+			display: none;
 		}
 		#editor::after {
 			content: '';
@@ -27,55 +29,23 @@ import { FileEditorBase } from "./FileEditorBase";
 			
 			pointer-events: none;
 		}
+		iframe {
+			width: 100%;
+			height: 100%;
+			border: none;
+		}
 	`;
-	private monaco?: monaco.editor.IStandaloneCodeEditor;
-	private observer?: ResizeObserver;
-
 	protected async onFirstContentLoad() {
 		this.setAttribute('tabindex', '0');
-		const content = await this.file.content as string;
-		const editorContainer = this.shadowRoot!.getElementById('editor')!;
-		let lang: string | undefined = content.length > 1000000 ? undefined : MonacoEditor.getLanguage(this.file.path?.split('.').pop()) ?? 'plaintext';
-		monaco.editor.defineTheme("vs-dark", {
-			base: "vs-dark",
-			inherit: true,
-			rules: [],
-			colors: { 'editor.background': "#232627" }
-		});
-		this.monaco = monaco.editor.create(editorContainer, {
-			value: content,
-			language: lang,
-			fontSize: 10.5,
-			theme: 'vs-dark',
-			tabSize: 4,
-			insertSpaces: false,
-			useTabStops: true
-		});
-
-
-		this.monaco.onDidChangeModelContent(() => this.setEditorContent(this.monaco!.getValue()));
-		this.observer = new ResizeObserver(() => this.checkSize());
-		this.observer.observe(editorContainer);
-		window.addEventListener('resize', () => this.checkSize());
-		this.checkSize();
-
+		const iframe = this.shadowRoot!.querySelector('iframe')!;
+		iframe.src = './monaco.html';
+		await new Promise(resolve => iframe.onload = resolve);
+		(iframe.contentWindow as any).init(this.file, (content: string) => this.setEditorContent(content));
+		iframe.contentDocument!.addEventListener('keydown', this.keydownHandler)
 	}
-
-	private checkSize(): void {
-		const size = this.getBoundingClientRect();
-		this.monaco?.updateOptions({ minimap: { enabled: size.width > 900 } });
-		this.monaco?.layout();
-	}
-
-	onDispose() {
-		this.monaco?.dispose();
-		this.observer?.disconnect();
-		delete this.observer;
-		delete this.monaco;
-	}
-	render = () => html`<div id="editor" class="editor"></div>`
-	updated = () => this.monaco?.layout();
-	onContentUpdate = () => this.monaco?.setValue(this.editorContent as string ?? '');
+	onDispose = ()=> (this.shadowRoot!.querySelector('iframe')!).src = '';
+	render = () => html`<iframe></iframe><div id="editor" class="editor"></div>`
+	onContentUpdate = () => ((this.shadowRoot!.querySelector('iframe')!).contentWindow as any).setContent(this.editorContent as string ?? '');
 }
 
-render(html`<style>${unsafeHTML(monacoCSS)}<style>`, document.body);
+render(html`<style>${unsafeHTML(monacoCSS)}</style>`, document.body);

@@ -1,6 +1,4 @@
 import { Builder } from "@cmajor-playground/builders";
-import { MagicFS, VirtualFS, Volume } from "@cmajor-playground/utilities";
-import monaco from '@cmajor-playground/bunaco';
 
 export type PatchView = {
 	src: string;
@@ -53,7 +51,7 @@ export type AppConfig = {
 	templates: Record<string, ProjectTemplate>;
 	sources: Record<string, ProjectSource>;
 	builders: Builder[];
-	languages: LanguageDefinition[];
+	// languages: LanguageDefinition[];
 	serviceWorker: URL;
 };
 export type ProjectSourceInfo = {
@@ -65,13 +63,3 @@ export type ProjectSource = {
 	test(identifier: string): boolean;
 	import(identifier: string): Promise<{ name: string; meta: any; files: SourceFile[]; }>;
 };
-
-export type LanguageDefinition = {
-	language: monaco.languages.ILanguageExtensionPoint,
-	configutation?: monaco.languages.LanguageConfiguration,
-	themeData?: monaco.editor.IStandaloneThemeData,
-	hoverProvider?: monaco.languages.HoverProvider,
-	tokensProvider?: monaco.languages.IMonarchLanguage,
-	completionItemProvider?: monaco.languages.CompletionItemProvider
-	documentFormattingEditProvider?: monaco.languages.DocumentFormattingEditProvider
-}

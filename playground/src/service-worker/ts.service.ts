@@ -3,12 +3,13 @@ console.log('creating ts service');
 // @ts-ignore
 return class {
 	static transformer: TransformerFactory<SourceFile> | CustomTransformerFactory;
-	static compileTypeScript(code: string, options?: TranspileOptions) {
+	static compileTypeScript(name: string, code: string, options?: TranspileOptions) {
 		options ??= {};
 		options.compilerOptions ??= {
 			module: ts.ModuleKind.Preserve,
 			target: ts.ScriptTarget.ESNext,
 			experimentalDecorators: true,
+			allowJs: true,
 			moduleResolution: ModuleResolutionKind.Classic
 		};
 		this.transformer = <T extends ts.Node>(context: TransformationContext) => {
@@ -41,6 +42,7 @@ return class {
 
 		const result = ts.transpileModule(code, {
 			...options,
+			fileName: name,
 			transformers: { before: [this.transformer] }
 		}).outputText;
 		return result;

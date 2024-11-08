@@ -43,14 +43,22 @@ export class Project {
 		const openFilesOrder: string[] = state.openFilesOrder ?? [];
 		for (let id of openFiles) await this.openFile(id);
 		for (let id of openFilesOrder) await this.openFile(id);
+		this.updateEditorVisibility();
 		return this;
 	}
 	focusEditor(editor: FileEditorBase) {
 		this.editorsOrder = this.editorsOrder.filter(e => e != editor);
 		this.editorsOrder.push(editor);
+		this.updateEditorVisibility();
 		this.storeState();
 		this.onChange.trigger();
 	}
+	private updateEditorVisibility() {
+		for (let editor of this.editors) {
+			editor.style.display = editor == this.editorsOrder.at(-1) ? '' : 'none';
+		}
+	}
+
 	storeState() {
 		const state = {
 			openFiles: this.editors.map(editor => editor.file.id),
@@ -89,6 +97,7 @@ export class Project {
 			this.editors.push(editorFile);
 			this.editorsOrder.push(editorFile);
 		}
+		this.updateEditorVisibility();
 		this.storeState();
 		this.onChange.trigger();
 	}

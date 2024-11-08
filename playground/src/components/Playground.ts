@@ -10,7 +10,7 @@ import { ContextManager, Trigger } from '@cmajor-playground/utilities';
 import { App, examples, ProjectInfo, ZipLoader } from '../state';
 export enum Layout { Horizontal = 'horizontal', Vertical = 'vertical' }
 import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
-import { CmajLanguageDefinition, FaustLanguageDefinition } from '../languages';
+
 import { defaultTemplate, uiTemplate } from '../templates';
 await App.init({
 	vfs: 'CmajPlaygroundProjects', builds: 'builds',
@@ -18,7 +18,6 @@ await App.init({
 	templates: { default: defaultTemplate, ui: uiTemplate },
 	sources: { zip: ZipLoader },
 	builders: [FaustBuilder, CmajorBuilder],
-	languages: [CmajLanguageDefinition, FaustLanguageDefinition],
 	serviceWorker: new URL('../../service.worker.js', import.meta.url)
 });
 @customElement('cmaj-playground') export class Playground extends LitElement {
@@ -54,7 +53,6 @@ await App.init({
 			user-select: none;
 		}
 		
-		#editors>*:not(:last-child) { display: none; }
 		#editors { flex: 1; }
 		
 		
@@ -83,6 +81,7 @@ await App.init({
 		.none {
 			background-color: #191b1b;
 			display: flex;
+			display: none;
 			flex: 1;
 			justify-content: center;
 			align-items: center;
@@ -311,7 +310,7 @@ await App.init({
 			<div id="content-split">
 				<div id="editors" style="overflow: hidden;">
 					<div class="none">Open a file to start coding</div>
-					${this.project!.editorsOrder}
+					${this.project!.editors}
 				</div>
 				<flex-splitter id="content-splitter" attach="next"></flex-splitter>
 				<div id="preview" style="display: flex; overflow: hidden;">${keyed(this.project!.info.id, html`<cmaj-products .hideKeyboard=${this.hideKeyboard} position=${this.layout == Layout.Vertical ? 'bottom' : 'right'} .buildManager=${this.project!.buildManager}></cmaj-products>`)}</div>

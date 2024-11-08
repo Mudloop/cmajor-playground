@@ -21,19 +21,7 @@ export class App {
 		this.vfs = new VirtualFS(config.vfs);
 		(window as any).vfs = this.vfs;
 		this.builders = config.builders;
-		config.languages.forEach(language => this.registerLanguage(language));
-		const json = monaco.languages.getLanguages().find(lang => lang.extensions?.includes('.json'))
-		json!.extensions!.push('.cmajorpatch');
 
-	}
-	static registerLanguage(lang: LanguageDefinition): void {
-		monaco.languages.register(lang.language);
-		if (lang.configutation) monaco.languages.setLanguageConfiguration(lang.language.id, lang.configutation);
-		if (lang.themeData) monaco.editor.defineTheme("vs-dark", lang.themeData);
-		if (lang.hoverProvider) monaco.languages.registerHoverProvider(lang.language.id, lang.hoverProvider);
-		if (lang.tokensProvider) monaco.languages.setMonarchTokensProvider(lang.language.id, lang.tokensProvider);
-		if (lang.completionItemProvider) monaco.languages.registerCompletionItemProvider(lang.language.id, lang.completionItemProvider);
-		if (lang.documentFormattingEditProvider) monaco.languages.registerDocumentFormattingEditProvider(lang.language.id, lang.documentFormattingEditProvider);
 	}
 	static generateProjectName = async () => `Untitled ${++this.lastProjectNumber}`;
 	static getProjectInfo = async (id: string | undefined) => (await this.listProjects()).find(p => p.id == id)
