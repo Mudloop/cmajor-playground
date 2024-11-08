@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 const readLocalConfig = (path: string) => {
 	console.log(path);
-	return existsSync(path) ? JSON.parse(readFileSync(path)) : undefined;
+	return existsSync(path) ? JSON.parse(readFileSync(path, 'utf-8')) : undefined;
 }
 
 export default async (req: Request, _context: Context) => {

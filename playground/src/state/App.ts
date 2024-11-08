@@ -1,7 +1,6 @@
-import { generateUniqueId, MagicFS, sanitizePath, VirtualFS, Volume } from "@cmajor-playground/utilities"
+import { generateUniqueId, sanitizePath, VirtualFS } from "@cmajor-playground/utilities"
 import { Project } from "./Project";
-import { ProjectTemplate, ProjectSource, AppConfig, ProjectInfo, ProjectSourceInfo, SourceFile, LanguageDefinition } from "./Types";
-import monaco from '@cmajor-playground/bunaco';
+import { ProjectTemplate, ProjectSource, AppConfig, ProjectInfo, ProjectSourceInfo, SourceFile } from "./Types";
 import { Builder } from "@cmajor-playground/builders";
 export class App {
 	public static vfs: VirtualFS;

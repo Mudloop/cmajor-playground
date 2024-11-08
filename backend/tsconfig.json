@@ -23,5 +23,5 @@
 			"*": [ "./node_modules/*" ]
 		}
 	},
-	"include": [ "./netlify/functions/**/*.ts" ]
+	"include": [ "./netlify/functions/**/*.mts" ]
 }

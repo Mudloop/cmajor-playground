@@ -1,1 +1,10 @@
-{ "dependencies": { "@netlify/functions": "^2.8.2", "fs": "^0.0.1-security", "path": "^0.12.7" } }
+{
+	"dependencies": {
+		"@netlify/functions": "^2.8.2",
+		"fs": "^0.0.1-security",
+		"path": "^0.12.7"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.1.12"
+	}
+}
