@@ -9,6 +9,7 @@ const readLocalConfig = (path: string) => {
 
 export default async (req: Request, _context: Context) => {
 	const code = new URL(req.url).searchParams.get('code');
+	console.log('Has env?', Netlify.env.has('GITHUB_CLIENT_ID'));
 	const config = Netlify.env.has('GITHUB_CLIENT_ID') ? {
 		client_id: Netlify.env.get('GITHUB_CLIENT_ID'),
 		client_secret: Netlify.env.get('GITHUB_CLIENT_SECRET'),
