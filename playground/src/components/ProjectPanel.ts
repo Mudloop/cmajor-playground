@@ -27,12 +27,15 @@ import { App } from "../state";
 			margin: 0;
 			overflow-y: auto;
 			height: 100%;
-			position: absolute;
-			inset: 0;
+			
 		}
 		section {
 			position: relative;
 			height: 100%;
+		}
+		section ul {
+			position: absolute;
+			inset: 0;
 		}
 		li {
 			padding: 4px 8px;
