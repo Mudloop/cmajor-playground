@@ -10,6 +10,22 @@ import { COMMON_STYLES } from './common-styles';
 	@property({ type: Object }) playground!: Playground;
 	static styles = css`
 		${COMMON_STYLES}
+		:host {
+			transition: transform 0.25s ease;
+			transform-origin: left;
+			gap: 2px;
+			width: 200px;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;position: relative;
+			left: 0;
+			margin: 0;
+			background-color: transparent;
+			padding: 0;
+			border: none;
+			height: 100%;
+			outline: none !important;
+		}
 		.logo {
 			display: flex;
 			padding: 20px 8px;
@@ -20,8 +36,8 @@ import { COMMON_STYLES } from './common-styles';
 		}
 		.logo img {
 			width: 100%;
-			max-width: 150px;
-			min-width: 150px;
+			max-width: 135px;
+			min-width: 135px;
 			height: auto;
 			
 			opacity: .65;
@@ -48,7 +64,7 @@ import { COMMON_STYLES } from './common-styles';
 			min-height: 38px;
 			display: flex;
 			flex-direction: row;
-			justify-content: space-between;
+			justify-content: center;
 			align-items: center;
 			border-bottom: 1px solid #4e4e4e;
 		}
@@ -98,8 +114,10 @@ import { COMMON_STYLES } from './common-styles';
 		<main>
 			${this.hideProjectPanel
 				? html`${this.playground.project?.modified ? html`<button @click=${() => this.playground.resetProject()}>Reset</button>` : ''}`
-				: html`<cmaj-projects .playground=${this.playground}></cmaj-projects>`}
-			<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
+				: html`
+					<cmaj-projects .playground=${this.playground}></cmaj-projects>
+					<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
+				`}
 			${keyed(this.playground.project!.info.id, html`<cmaj-explorer .playground=${this.playground}></cmaj-explorer>`)}	
 		</main>
 	`;

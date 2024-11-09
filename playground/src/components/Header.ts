@@ -76,10 +76,15 @@ import { ContextManager } from '@cmajor-playground/utilities';
 			<ui-icon width=20 height=20 id="split-right" icon="split-right" currentColors @click=${() => this.playground.setAttribute('layout', Layout.Horizontal)}></ui-icon>
 			<button @click=${() => this.playground.removeAttribute('preview-mode')} id="edit"><ui-icon width=14 height=14 icon="edit" currentColors></ui-icon> Editor</button>
 			<button @click=${() => this.playground.setAttribute('preview-mode', '')}  id="play"><ui-icon width=14 height=14 icon="player-play" currentColors></ui-icon> Player</button>
-			<ui-icon class="${ContextManager.muted ? 'off' : 'selected'}" width="20" height="20" currentColors icon="${ContextManager.muted ? 'muted' : 'unmuted'}" @click=${() => this.playground.toggleMute()}></ui-icon>
+			<ui-icon class="${ContextManager.muted ? 'off' : 'selected'}" width="20" height="20" currentColors icon="${ContextManager.muted ? 'muted' : 'unmuted'}" @click=${() => this.toggleMute()}></ui-icon>
 			${this.embedded && this.enlarged ? html`<ui-icon width=20 height=20 currentColors class="selected" icon="shrink" @click=${(e: any) => this.playground.sendRequest('shrink')}></ui-icon>` : ''}
 			${this.embedded && !this.enlarged ? html`<ui-icon width=20 height=20 currentColors icon="enlarge" @click=${(e: any) => this.playground.sendRequest('enlarge')}></ui-icon>` : ''}
 			<!--ui-icon width=20 height=20 id="settings" icon="tabler-settings-2" currentStroke @click=${() => this.playground.setAttribute('preview-mode', '')}></ui-icon-->
 		</div>
 	`
+
+	private toggleMute() {
+		this.playground.toggleMute();
+		this.requestUpdate();
+	}
 }

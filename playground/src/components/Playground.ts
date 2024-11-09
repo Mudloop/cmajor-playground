@@ -112,21 +112,6 @@ await App.init({
 		:host([embedded]:not([enlarged])) .logo {
 			display: none;
 		}
-		#sidebar {
-			transition: transform 0.25s ease;
-			transform-origin: left;
-			width: 200px;
-			overflow: hidden;
-			display: flex;
-			flex-direction: column;position: relative;
-			left: 0;
-			margin: 0;
-			background-color: transparent;
-			padding: 0;
-			border: none;
-			height: 100%;
-			outline: none !important;
-		}
 		:host([size="md"]) #sidebar {
 			width: 160px;
 		}

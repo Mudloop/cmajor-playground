@@ -21,7 +21,7 @@ import { App } from "../state";
 		
 		ul {
 			border-radius: 2px;
-			background-color: #353637d6;
+			background-color: #35363763;
 			list-style: none;
 			padding: 0;
 			margin: 0;
