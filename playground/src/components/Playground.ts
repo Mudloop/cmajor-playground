@@ -2,12 +2,11 @@
 import { LitElement, PropertyValues, css, html } from "lit";
 import { customElement, property } from "lit/decorators";
 import { Project } from '../state/Project';
-import { FileEditorBase } from './FileEditorBase';
 import { COMMON_STYLES } from './common-styles';
 import { keyed } from 'lit/directives/keyed';
 import { Modals } from './Modals';
 import { ContextManager, Trigger } from '@cmajor-playground/utilities';
-import { App, examples, ProjectInfo, ZipLoader } from '../state';
+import { App, EditorFile, examples, ProjectInfo, ZipLoader } from '../state';
 export enum Layout { Horizontal = 'horizontal', Vertical = 'vertical' }
 import { FaustBuilder, CmajorBuilder } from '@cmajor-playground/builders';
 
@@ -45,20 +44,12 @@ await App.init({
 			font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			font-size: 12px;
 		}
-		dialog {
-			color: inherit;
-		}
 		* {
 			box-sizing: border-box;
 			user-select: none;
 		}
 		
 		#editors { flex: 1; }
-		
-		
-		
-		:host([layout="vertical"]) #split-bottom { opacity: 1; }
-		:host(:not([layout="vertical"])) #split-right { opacity: 1; }
 		
 		
 		
@@ -81,7 +72,6 @@ await App.init({
 		.none {
 			background-color: #191b1b;
 			display: flex;
-			display: none;
 			flex: 1;
 			justify-content: center;
 			align-items: center;
@@ -161,17 +151,6 @@ await App.init({
 			display: none;
 		}
 
-		.gutter {
-			width: 5px;
-			position: relative;
-		}
-		.gutter::after {
-			content: '';
-			inset: 1px;
-			opacity: 0;
-			background-color: #e2b461;
-			position: absolute;
-		}
 		#content {
 			flex: 1;
 			display: flex;
@@ -210,6 +189,11 @@ await App.init({
 		ui-icon {
 			cursor: pointer;
 		}
+		// iframe {
+		// 	width: 100%;
+		// 	height: 100%;
+		// 	border: none;
+		// }
 	`;
 	hideProjectPanel: boolean = false;
 	hideKeyboard: boolean = false;
@@ -291,19 +275,22 @@ await App.init({
 		</cmaj-sidebar>
 		<flex-splitter id="main-splitter" attach="prev"></flex-splitter>
 		<div id="content">
-			<cmaj-header size=${this.size} .previewMode=${this.previewMode} .embedded=${this.embedded} .enlarged=${this.enlarged} .playground=${this}></cmaj-header>
+			<cmaj-header size=${this.size} layout=${this.layout} .previewMode=${this.previewMode} .embedded=${this.embedded} .enlarged=${this.enlarged} .playground=${this}></cmaj-header>
 			<div id="content-split">
-				<div id="editors" style="overflow: hidden;">
-					<div class="none">Open a file to start coding</div>
-					${this.project!.editors}
-				</div>
-				<flex-splitter id="content-splitter" attach="next"></flex-splitter>
-				<div id="preview" style="display: flex; overflow: hidden;">${keyed(this.project!.info.id, html`<cmaj-products .hideKeyboard=${this.hideKeyboard} position=${this.layout == Layout.Vertical ? 'bottom' : 'right'} .buildManager=${this.project!.buildManager}></cmaj-products>`)}</div>
+				${keyed(this.project!.info.id, html`
+					<div id="editors" style="overflow: hidden;">
+						<div class="none ${this.project?.focusedFile ? 'hidden' : ''}">Open a file to start coding</div>
+						<cmaj-monaco-container .project=${this.project} .focusedFileId=${this.project?.focusedFile?.file.id} class="${this.project?.focusedFile?.useMonaco ? '' : 'hidden'}"></cmaj-monaco-container>
+						${!this.project?.focusedFile || this.project?.focusedFile?.useMonaco ? '' : html`123`}
+					</div>
+					<flex-splitter id="content-splitter" attach="next"></flex-splitter>
+					<div id="preview" style="display: flex; overflow: hidden;"><cmaj-products .hideKeyboard=${this.hideKeyboard} position=${this.layout == Layout.Vertical ? 'bottom' : 'right'} .buildManager=${this.project!.buildManager}></cmaj-products></div>
+				`)}
 			</div>
 		</div>
 	`;
 	closeProject = () => this.loadProject();
-	close = async (editor: FileEditorBase) => (await this.project?.closeFile(editor.file.id)) && this.requestUpdate();
+	close = async (editor: EditorFile) => (await this.project?.closeFile(editor.file.id)) && this.requestUpdate();
 	toggleMute() {
 		ContextManager.toggleMute();
 		this.requestUpdate();

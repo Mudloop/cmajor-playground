@@ -1,24 +1,20 @@
 import { ProjectInfo, Manifest } from "./Types";
-import { isBinary, MagicFile, MagicFS, sanitizePath, Trigger, Volume } from "@cmajor-playground/utilities";
+import { MagicFile, MagicFS, sanitizePath, Trigger, Volume } from "@cmajor-playground/utilities";
 import { App } from "./App";
 import { Modals } from "../components/Modals";
-import { FileEditorBase } from "../components/FileEditorBase";
-import { FileViewer } from "../components/FileViewer";
 import { BuildManager } from "./BuildManager";
-import { MonacoEditor } from "../components/MonacoEditor";
-import { mtype } from "../mtype";
+import { EditorFile } from "./EditorFile";
 
 export class Project {
 
-	editors: FileEditorBase[] = [];
-	editorsOrder: FileEditorBase[] = [];
+	openFiles: EditorFile[] = [];
+	openFilesOrder: EditorFile[] = [];
 	onChange = new Trigger;
 	onFilesChange = new Trigger;
 	fs: MagicFS;
 	buildManager: BuildManager;
-	get modified() {
-		return this.info.version > 0;
-	}
+	get focusedFile() { return this.openFilesOrder.at(-1) }
+	get modified() { return this.info.version > 0; }
 	constructor(public info: ProjectInfo, public volume: Volume) {
 		this.fs = new MagicFS(volume);
 		volume.watch(async (details) => {
@@ -47,23 +43,23 @@ export class Project {
 		this.updateEditorVisibility();
 		return this;
 	}
-	focusEditor(editor: FileEditorBase) {
-		this.editorsOrder = this.editorsOrder.filter(e => e != editor);
-		this.editorsOrder.push(editor);
+	focusEditor(editor: EditorFile) {
+		this.openFilesOrder = this.openFilesOrder.filter(e => e != editor);
+		this.openFilesOrder.push(editor);
 		this.updateEditorVisibility();
 		this.storeState();
 		this.onChange.trigger();
 	}
 	private updateEditorVisibility() {
-		for (let editor of this.editors) {
-			editor.style.display = editor == this.editorsOrder.at(-1) ? '' : 'none';
+		for (let editor of this.openFiles) {
+			// editor.style.display = editor == this.openFilesOrder.at(-1) ? '' : 'none';
 		}
 	}
 
 	storeState() {
 		const state = {
-			openFiles: this.editors.map(editor => editor.file.id),
-			openFilesOrder: this.editorsOrder.map(editor => editor.file.id),
+			openFiles: this.openFiles.map(editor => editor.file.id),
+			openFilesOrder: this.openFilesOrder.map(editor => editor.file.id),
 		};
 		localStorage.setItem(`project-state-${this.info.id}`, JSON.stringify(state))
 	}
@@ -80,43 +76,48 @@ export class Project {
 		}
 		return cmajorpatch.id;
 	}
-	private createEditor = (file: MagicFile) => {
-		const ret = isBinary(mtype(file.path)) ? new FileViewer(file) : new MonacoEditor(file);
-		ret.changeTrigger.add(() => this.onChange.trigger());
-		return ret;
-	}
+	// private createEditor = (file: MagicFile) => {
+	// 	const ret = isBinary(mtype(file.path)) ? new FileViewer(file) : new MonacoEditor(file);
+	// 	ret.changeTrigger.add(() => this.onChange.trigger());
+	// 	return ret;
+	// }
 	async openFile(id: string) {
-		const currentIndex = this.editorsOrder.findIndex(editor => editor.file.id == id);
+		const currentIndex = this.openFilesOrder.findIndex(editor => editor.file.id == id);
 		if (currentIndex != -1) {
-			const editorFile = this.editorsOrder[currentIndex];
-			this.editorsOrder.splice(currentIndex, 1);
-			this.editorsOrder.push(editorFile);
+			const editorFile = this.openFilesOrder[currentIndex];
+			this.openFilesOrder.splice(currentIndex, 1);
+			this.openFilesOrder.push(editorFile);
 		} else {
 			const file = await this.fs.getById(id) as MagicFile;
 			if (!file?.isFile) return;
-			const editorFile = this.createEditor(file);
-			this.editors.push(editorFile);
-			this.editorsOrder.push(editorFile);
+			const editorFile = new EditorFile(file);
+			editorFile.changeTrigger.add(() => {
+				this.onChange.trigger();
+				this.onFilesChange.trigger();
+			})
+			this.openFiles.push(editorFile);
+			this.openFilesOrder.push(editorFile);
 		}
 		this.updateEditorVisibility();
 		this.storeState();
 		this.onChange.trigger();
 	}
 	async closeFile(id: string) {
-		const editor = this.editorsOrder.find(editor => editor.file.id == id);
-		if (editor?.isDirty && !await Modals.confirm('Unsaved changes', `You have unsaved changes.\n\nAre you sure you want to close this file?`)) return false;
-		this.editorsOrder = this.editorsOrder.filter(editor => editor.file.id != id);
-		this.editors = this.editors.filter(editor => editor.file.id != id);
+		const editorFile = this.openFilesOrder.find(editor => editor.file.id == id);
+		if (editorFile?.isDirty && !await Modals.confirm('Unsaved changes', `You have unsaved changes.\n\nAre you sure you want to close this file?`)) return false;
+		editorFile?.dispose();
+		this.openFilesOrder = this.openFilesOrder.filter(editor => editor.file.id != id);
+		this.openFiles = this.openFiles.filter(editor => editor.file.id != id);
 		this.onChange.trigger();
 		this.storeState();
 		return true;
 	}
 	async close() {
-		const dirty = this.editors.filter(editor => editor.isDirty).length;
+		const dirty = this.openFiles.filter(editor => editor.isDirty).length;
 		if (dirty && !await Modals.confirm('Unsaved changes', `You have unsaved changes.\n\nAre you sure you want to close this project?`)) return false;
-		this.editors.forEach((editor) => editor.dispose());
-		this.editors = [];
-		this.editorsOrder = [];
+		this.openFiles.forEach((editor) => editor.dispose());
+		this.openFiles = [];
+		this.openFilesOrder = [];
 		this.fs.close();
 		this.buildManager.dispose();
 		return true;

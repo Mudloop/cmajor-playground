@@ -54,6 +54,8 @@ import { ContextManager } from '@cmajor-playground/utilities';
 		:host(:not([size="lg"])) #split-right { display: none; }
 		:host([size="lg"]) #play { display: none; }
 		:host([size="lg"]) #edit { display: none; }
+		:host([layout="vertical"]) #split-bottom { opacity: 1; }
+		:host(:not([layout="vertical"])) #split-right { opacity: 1; }
 		button {
 			align-self: center;
 			padding: 4px 8px;

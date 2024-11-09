@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators";
 import { COMMON_STYLES } from "./common-styles";
 import { Playground } from "./Playground";
 import { FileEditorBase } from "./FileEditorBase";
+import { EditorFile } from "../state";
 export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="10" height="10"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
 @customElement('cmaj-tabs') export class Tabs extends LitElement {
 	@property({ type: Object }) playground!: Playground;
@@ -54,9 +55,6 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			border-bottom: 1px solid transparent;
 			padding-top: 1px;
 		}
-		.icon {
-			left: 10px;
-		}
 		.close {
 			transition: all 0.2s ease;
 			right: 8px;
@@ -70,13 +68,9 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 		.active .close {
 			opacity: .5;
 		}
-		.close svg, .icon svg {
+		.close svg {
 			stroke: currentColor;
 			fill: currentColor;
-		}
-		.icon svg {
-			width: 14px;
-			height: 14px;
 		}
 		label {
 			cursor: pointer;
@@ -87,6 +81,9 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			max-width:130px;
 			width: 100%;
 			font-size:11px;
+			padding-right: 4px;
+		}
+		ui-file-icon {
 			padding-right: 8px;
 		}
 		.tab:hover .close {
@@ -105,7 +102,7 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 	firstScroll: boolean = true;
 	prevSelected: any;
 	updated() {
-		if (this.prevSelected != this.playground.project!.editorsOrder.at(-1)) {
+		if (this.prevSelected != this.playground.project!.openFilesOrder.at(-1)) {
 			this.checkScroll();
 		}
 	}
@@ -122,23 +119,23 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			left: targetScrollPosition,
 			behavior: forced ? 'instant' : 'smooth'
 		});
-		this.prevSelected = this.playground.project!.editorsOrder.at(-1);
+		this.prevSelected = this.playground.project!.openFilesOrder.at(-1);
 	}
 
-	render = () => html`<main>${this.playground.project!.editors.map(editor => this.rendertab(editor))}</main>`;
-	rendertab = (editor: FileEditorBase) => html`
-		<div class="tab ${editor == this.playground.project!.editorsOrder.at(-1) ? 'active' : ''}" @pointerdown=${() => this.playground.project!.focusEditor(editor)}>
-			<ui-file-icon .path=${editor.file.name} width="16" height="16"></ui-file-icon>
+	render = () => html`<main>${this.playground.project!.openFiles.map(file => this.rendertab(file))}</main>`;
+	rendertab = (file: EditorFile) => html`
+		<div class="tab ${file == this.playground.project!.openFilesOrder.at(-1) ? 'active' : ''}" @pointerdown=${() => this.playground.project!.focusEditor(file)}>
+			<ui-file-icon .path=${file.file.name} width="16" height="16"></ui-file-icon>
 			<label>
-				${editor.isDirty ? '•' : ''}
-				${editor.file.name}
+				${file.isDirty ? '•' : ''}
+				${file.file.name}
 			</label>
-			<div class="close" @pointerdown=${(e: Event) => e.stopPropagation()} @click=${(e: MouseEvent) => this.close(editor, e)}>${CLOSE_ICON}</div>
+			<div class="close" @pointerdown=${(e: Event) => e.stopPropagation()} @click=${(e: MouseEvent) => this.close(file, e)}>${CLOSE_ICON}</div>
 		</div>
 	`
 
-	private close(editor: FileEditorBase, e: MouseEvent) {
-		this.playground.close(editor);
+	private close(file: EditorFile, e: MouseEvent) {
+		this.playground.close(file);
 		e.stopPropagation();
 		e.preventDefault();
 	}

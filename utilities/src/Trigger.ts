@@ -3,5 +3,5 @@ export class Trigger<T = void> {
 	public add = (listener: (t: T) => void) => this.listeners.add(listener);
 	public remove = (listener: (t: T) => void) => this.listeners.delete(listener);
 	public trigger = (t: T) => this.listeners.forEach(listener => listener(t));
-	public dispose = () => this.listeners.clear();
+	public removeAll = () => this.listeners.clear();
 }

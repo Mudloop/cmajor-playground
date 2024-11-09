@@ -1,5 +1,5 @@
 import { FileContents, MagicFile, Trigger } from "@cmajor-playground/utilities";
-import { LitElement, PropertyValues, css } from "lit";
+import { LitElement, css } from "lit";
 import { COMMON_STYLES } from "./common-styles";
 
 export abstract class FileEditorBase extends LitElement {
@@ -20,7 +20,7 @@ export abstract class FileEditorBase extends LitElement {
 	constructor(public file: MagicFile) {
 		super();
 		file.onChange.add(this.fileChanged);
-		file.onDelete.add(this.fileDeleted);
+		// file.onDelete.add(this.fileDeleted);
 		this.addEventListener('keydown', async (e: KeyboardEvent) => {
 			await this.keydownHandler(e);
 		});
@@ -35,9 +35,6 @@ export abstract class FileEditorBase extends LitElement {
 				this.onContentUpdate();
 			}
 		}
-	}
-	private fileDeleted = () => {
-		// this.playground.close(editor);
 	}
 	protected keydownHandler = async (e: KeyboardEvent) => {
 		if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
@@ -67,6 +64,6 @@ export abstract class FileEditorBase extends LitElement {
 	dispose(): void {
 		this.changeTrigger.dispose();
 		this.file.onChange.remove(this.fileChanged);
-		this.file.onDelete.remove(this.fileDeleted);
+		// this.file.onDelete.remove(this.fileDeleted);
 	}
 }

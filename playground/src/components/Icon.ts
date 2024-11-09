@@ -3,7 +3,7 @@ import { customElement, property } from "lit/decorators";
 import { loadIcons } from "../macros/loadIcons" with {type: 'macro'};
 import { unsafeHTML } from 'lit/directives/unsafe-html';
 import { COMMON_STYLES } from "./common-styles";
-import { MonacoEditor } from './MonacoEditor';
+// import { MonacoEditor } from './MonacoEditor';
 import { mtype } from "../mtype";
 const icons = loadIcons('../../assets/file-icons', '../../assets/icons', '../../assets/icons/tabler-icons');
 export class IconRegistry {
@@ -71,11 +71,11 @@ export class IconRegistry {
 			this.removeAttribute('currentColors');
 			return IconRegistry.getIcon(ext);
 		}
-		const lang = MonacoEditor.getLanguage(ext!);
-		if (lang && IconRegistry.getIcon(lang)) {
-			this.removeAttribute('currentColors');
-			return IconRegistry.getIcon(lang);
-		}
+		// const lang = MonacoEditor.getLanguage(ext!);
+		// if (lang && IconRegistry.getIcon(lang)) {
+		// 	this.removeAttribute('currentColors');
+		// 	return IconRegistry.getIcon(lang);
+		// }
 
 		const mime = mtype(this.path!);
 		this.setAttribute('currentColors', '');

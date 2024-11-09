@@ -15,8 +15,8 @@ export abstract class MagicFSEntry {
 		this.disposed = true;
 		this.onDispose();
 		this.onDelete.trigger();
-		this.onDelete.dispose();
-		this.onChange.dispose();
+		this.onDelete.removeAll();
+		this.onChange.removeAll();
 		return this.id;
 	}
 	reset() {
@@ -64,6 +64,9 @@ export class MagicDir extends MagicFSEntry {
 export class MagicFile extends MagicFSEntry {
 	isFile: true = true;
 	isDir: false = false;
+	get isBinary() {
+		return isBinary(mtype(this.path));
+	}
 	constructor(fs: MagicFS, path: string, id: string, public hash: string) { super(fs, path, id); }
 	private _content?: Promise<FileContents>;
 	private _text?: Promise<string>;
@@ -149,9 +152,7 @@ export class MagicFS {
 		}
 	}
 	getContent = async (file: MagicFile) => {
-		const mime = mtype(file.path);
-		const binary = isBinary(mime);
-		return await (binary ? this._volume.readBinary(file.path) : this._volume.readText(file.path));
+		return await (file.isBinary ? this._volume.readBinary(file.path) : this._volume.readText(file.path));
 	}
 	find = async (predicate: (f: any) => any) => {
 		const queue: MagicFSEntry[] = [this.root];
