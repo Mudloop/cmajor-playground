@@ -112,7 +112,7 @@ const directory = directive(class extends AsyncDirective {
 		li:hover .tools ui-icon:hover {
 			opacity: 1;
 		}
-		li header:has(.close:hover) {
+		li header:has(.close:hover)::before {
 			background-color: #713525d9 !important;
 			outline: 1px solid red;
 			outline-offset: -1px;
@@ -132,20 +132,38 @@ const directory = directive(class extends AsyncDirective {
 			flex-shrink: 0;
 			cursor: pointer;
 		}
-		header:hover {
+		header:hover::before {
 			background-color: #444;
 		}
-		.selected>header {
+		.selected>header::before {
 			background-color: rgba(226, 180, 97, 0.15);
 		}
 		.selected>header>label {
 			opacity: 0.8;
 		}
-		.selected>header:hover {
+		.selected>header:hover::before {
 			background-color: rgba(226, 180, 97, 0.25);
 		}
 		.highlighted>header {
 			
+			background-color: unset !important;
+		}
+		header::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 22px;
+			border-radius: 2px;
+			transition: all .2s ease;
+			pointer-events: none;
+		}
+		.highlighted>header::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 22px;
 			background-color: rgba(226, 180, 97, 0.267) !important;
 			outline: 1px solid rgba(226, 180, 97, 0.29);
 			outline-offset: -1px;
