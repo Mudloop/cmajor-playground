@@ -1,7 +1,7 @@
 {
 	"name": "@cmajor-playground/builders",
 	"scripts": {
-		"build": "bun build --entrypoints ./src/cmaj/worker/cmajor.worker.ts ./src/faust/worker/faust.worker.ts --outdir ./generated --target browser --packages bundle --sourcemap=linked --entry-naming [name].[ext] --minify",
+		"build": "bun build --entrypoints ./src/cmaj/worker/*.worker.ts ./src/faust/worker/*.worker.ts --outdir ./generated --target browser --packages bundle --sourcemap=linked --entry-naming [name].[ext] --minify",
 		"watch": "bun run build --watch"
 	},
 	"devDependencies": {

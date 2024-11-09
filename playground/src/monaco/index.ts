@@ -25,6 +25,7 @@ class Editor {
 			colors: { 'editor.background': "#232627" }
 		});
 		this.init();
+
 	}
 	async init() {
 		const content = await this.file.content as string;
@@ -41,6 +42,7 @@ class Editor {
 
 		this.monaco.onDidChangeModelContent(() => this.setEditorContent(this.monaco!.getValue()));
 		window.addEventListener('resize', () => this.checkSize());
+		(window as any).setContent = (content: string) => this.monaco.setValue(content)
 	}
 	setEditorContent(val: string): any {
 		this.callback(val);
@@ -52,7 +54,4 @@ class Editor {
 	}
 }
 
-(window as any).init = (file: MagicFile, callback: (content: string) => void) => {
-	const editor = new Editor(file, callback);
-	(window as any).setContent = (content: string) => editor.monaco.setValue(content)
-}
+(window as any).init = (file: MagicFile, callback: (content: string) => void) => new Editor(file, callback);

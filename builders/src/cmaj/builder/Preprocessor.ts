@@ -1,6 +1,7 @@
+import { MagicFile } from "@cmajor-playground/utilities";
 import { FilesWithHashes } from "../../core";
+import { Manifest } from "../types";
 
 export abstract class Preprocessor {
-	public processFiles = (files: FilesWithHashes, volumeId: string) => this.process(files, volumeId)
-	protected abstract process(files: FilesWithHashes, volumeId: string): Promise<FilesWithHashes> | FilesWithHashes;
+	public abstract process(files: FilesWithHashes, volumeId: string, mainFile: MagicFile): Promise<FilesWithHashes> | FilesWithHashes;
 }

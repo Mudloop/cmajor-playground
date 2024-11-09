@@ -86,7 +86,6 @@ import { RendererOptions } from "../../core/types.js";
 	init = async (options: RendererOptions) => {
 		const manifest = options.data.manifest as Manifest;
 		const code = options.data.code as string;
-		console.log({ code });
 		const version = options.data.version as string;
 		const connection = this.connection = new helpers.AudioWorkletPatchConnection(manifest);
 		connection.addAllParameterListener(async () => {
@@ -146,7 +145,7 @@ import { RendererOptions } from "../../core/types.js";
 			footer.appendChild(keyboard);
 		}
 		connection.connectDefaultAudioAndMIDI(options.ctx);
-
+		(window as any).connection = connection;
 
 	}
 	resize(main: HTMLElement, width: number, height: number): any {

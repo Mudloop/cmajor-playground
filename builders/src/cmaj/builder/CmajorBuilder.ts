@@ -3,17 +3,14 @@ import wasmPath from '../worker/cmaj_api/cmaj-compiler-wasm.wasm' with { type: '
 import { extractStrings, hashString, MagicFile, MagicFS, sanitizePath, work } from '@cmajor-playground/utilities';
 import { FilesWithHashes } from '../../core/types.js';
 import { Manifest } from '../types';
-
-import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.wasm' with {type: 'file'}
-import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.data' with {type: 'file'}
 import { Preprocessor } from './Preprocessor.js';
-import { FaustPreprocessor, JSPreprocessor } from './preprocessors';
+import { FaustPreprocessor, JSPreprocessor, SourceTransformer } from './preprocessors';
 const worker = workerSrc.replaceAll('./cmaj-compiler-wasm.wasm', new URL(wasmPath, import.meta.url).href);
 
 export class CmajorBuilder {
 	public static type = 'cmajor';
 	private static cache: Record<string, any> = {};
-	public static preprocessors: Preprocessor[] = [new JSPreprocessor(), new FaustPreprocessor()];
+	public static preprocessors: Preprocessor[] = [new JSPreprocessor, new FaustPreprocessor, new SourceTransformer];
 	public static test = (path: string) => path.endsWith('.cmajorpatch');
 	static async update(fs: MagicFS, manifestFile: MagicFile, setDirty: (diry: boolean) => {}) {
 		const manifestPath = manifestFile.path;
@@ -24,7 +21,7 @@ export class CmajorBuilder {
 		const extraFiles = await this.loadFiles(fs, extraPaths);
 		const paths = !manifest.source ? [] : [manifest.source].flat().map(path => sanitizePath(manifestPath + '/../' + path));
 		let files = await this.loadFiles(fs, paths);
-		for (let preprocessor of this.preprocessors) files = await preprocessor.processFiles(files, fs.volumeId);
+		for (let preprocessor of this.preprocessors) files = await preprocessor.process(files, fs.volumeId, manifestFile);
 		const hash = await hashString(...Object.entries(files).map(([_, { hash }]) => hash)); //todo: add extras to hash
 		const sources = Object.fromEntries(Object.entries(files).map(([key, { content }]) => [key.replace(manifestParentPath, ''), content]));
 		const extras = Object.fromEntries(Object.entries(extraFiles).map(([key, { content }]) => [key.replace(manifestParentPath, ''), content]));
@@ -35,10 +32,7 @@ export class CmajorBuilder {
 		}
 		setDirty(true);
 		const result = await work(worker, { manifestPath: manifestPath.split('/').at(-1), files: { ...extras, ...sources }, manifest });
-		return this.cache[hash] = {
-			build: { ...result as any, manifest },
-			hash
-		}
+		return this.cache[hash] = { build: { ...result as any, manifest }, hash }
 	}
 
 	private static loadFiles = async (fs: MagicFS, paths: string[]): Promise<FilesWithHashes> => {

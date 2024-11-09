@@ -1,4 +1,6 @@
 import workerSrc from '../../../../generated/faust.worker.js' with { type: 'text' };
+import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.wasm' with {type: 'file'}
+import '@grame/faustwasm/libfaust-wasm/libfaust-wasm.data' with {type: 'file'}
 import moduleURL from '@grame/faustwasm/libfaust-wasm/libfaust-wasm.js' with {type: 'file'}
 import { FilesWithHashes } from "../../../core";
 import { Preprocessor } from "../Preprocessor";
@@ -7,7 +9,7 @@ const faustModuleUrl = import.meta.resolve(moduleURL as any);
 
 export class FaustPreprocessor extends Preprocessor {
 	private cache: Record<string, string> = {};
-	protected process = async (files: FilesWithHashes) => Object.fromEntries(await Promise.all(Object.entries(files).map(async ([path, { content, hash }]) => {
+	public process = async (files: FilesWithHashes) => Object.fromEntries(await Promise.all(Object.entries(files).map(async ([path, { content, hash }]) => {
 		if (!path.endsWith('.dsp')) return [path, { content, hash }];
 		const processorName = `faust_${hash}`;
 		this.cache[hash] ??= await this.compile(content, processorName);
