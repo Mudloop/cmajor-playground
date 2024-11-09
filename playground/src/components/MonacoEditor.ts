@@ -40,10 +40,14 @@ import { FileEditorBase } from "./FileEditorBase";
 		const iframe = this.shadowRoot!.querySelector('iframe')!;
 		iframe.src = './monaco.html';
 		await new Promise(resolve => iframe.onload = resolve);
+		await new Promise<void>(resolve => iframe.contentWindow!.addEventListener('message', (e) => {
+			if (e.data == 'editorReady') resolve();
+		}));
+
 		(iframe.contentWindow as any).init(this.file, (content: string) => this.setEditorContent(content));
 		iframe.contentDocument!.addEventListener('keydown', this.keydownHandler)
 	}
-	onDispose = ()=> (this.shadowRoot!.querySelector('iframe')!).src = '';
+	onDispose = () => (this.shadowRoot!.querySelector('iframe')!).src = '';
 	render = () => html`<iframe></iframe><div id="editor" class="editor"></div>`
 	onContentUpdate = () => ((this.shadowRoot!.querySelector('iframe')!).contentWindow as any).setContent(this.editorContent as string ?? '');
 }

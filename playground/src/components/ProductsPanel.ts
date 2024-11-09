@@ -193,7 +193,7 @@ import { ContextManager } from "@cmajor-playground/utilities";
 			this.selectedProduct = product;
 			this.inputs.length = 0;
 			ContextManager.reset();
-			this.url = this.selectedProduct ? `./$${this.buildManager.project.volume.id}$${this.selectedProduct.id}/` : '';
+			this.url = this.selectedProduct ? `./:${this.buildManager.project.volume.id}:${this.selectedProduct.id}/` : '';
 			this.requestUpdate();
 		}
 	}

@@ -18,11 +18,11 @@ class ServiceRouter {
 		console.log(ts);
 	}
 	static handleFetch(event: FetchEvent) {
-		const url = new URL(event.request.url).href.replace(loc, '');
-		url.startsWith('$') ? event.respondWith(this.serveFromVolume(url.substring(1))) : undefined
+		const path = new URL(event.request.url).href.replace(loc, '').replaceAll('$', ':');
+		path.startsWith(':') ? event.respondWith(this.serveFromVolume(path.substring(1))) : undefined
 	}
 	static async serveFromVolume(url: string): Promise<Response> {
-		const [volumeId, rootId] = url.substring(0, url.indexOf('/')).split('$');
+		const [volumeId, rootId] = url.substring(0, url.indexOf('/')).split(':');
 		let path = sanitizePath(decodeURIComponent(url.substring(url.indexOf('/'))));
 		if (path == '') return new Response((await (await fetch(new URL('./preview.html', globalThis.location.href))).blob()));
 		const volume = await vfs.getVolume(volumeId);

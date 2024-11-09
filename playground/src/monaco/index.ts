@@ -55,3 +55,5 @@ class Editor {
 }
 
 (window as any).init = (file: MagicFile, callback: (content: string) => void) => new Editor(file, callback);
+window.postMessage('editorReady');
+console.log('init ready', window);
