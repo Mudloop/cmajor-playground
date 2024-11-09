@@ -43,7 +43,8 @@
 		if (qs.has('github_access_token')) {
 			const token = qs.get('github_access_token');
 			localStorage.setItem('github_access_token', token);
-			document.location.replace('./');
+			window.close();
+			// document.location.replace('./');
 		} else {
 			import('./bundle/js/index.js');
 		}

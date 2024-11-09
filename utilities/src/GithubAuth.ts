@@ -6,6 +6,13 @@ export class GithubAuth {
 	static {
 		if ((globalThis as any).localStorage) {
 			this.updateUser();
+			window.addEventListener('storage', e => {
+				if (e.key == 'github_access_token') {
+					this.updateUser();
+				} if (e.key == 'github_user_info') {
+					this.user = JSON.parse((globalThis as any).localStorage?.getItem('github_user_info') ?? 'null');
+				}
+			})
 		}
 	}
 	private static async getUser() {
