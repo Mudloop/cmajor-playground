@@ -15,8 +15,13 @@ export class BuildManager {
 	}
 	private update = async () => {
 		const files = await this.fs.findAll<MagicFile>(entry => entry.isFile);
+		Object.keys(this.builds).forEach(path => {
+			if (!files.find(file => file.path == path)) {
+				delete this.builds[path];
+			}
+		})
 		files.map(file => {
-			if (!file.isFile) return;
+			// if (!file.isFile) return;
 			const builder = this.builders.find(builder => builder.test(file.path));
 			if (!builder) return;
 

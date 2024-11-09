@@ -118,6 +118,7 @@ export class MagicFS {
 	get = async <T extends MagicFSEntry>(path: string) => this.root.get<T>(sanitizePath(path));
 	rename = async (entry: MagicFSEntry, path: string) => {
 		await this._volume.rename(entry.path, path);
+		entry.path = path;
 		entry.reset();
 		(await entry.parent)!.reset();
 	};

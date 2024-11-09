@@ -255,9 +255,12 @@ export class Volume {
 	public readTxn = <T>(handler: (reader: VolumeReader) => Promise<T>, stores?: string[]) => this.db.read(stores ?? allStores, accessors => handler(new VolumeReader(this.id, accessors)))
 	public writeTxn = async<T>(handler: (writer: VolumeWriter) => (Promise<T> | T), stores?: string[]) => {
 		const operations: Operation[] = [];
-		const result = await this.db.write(stores ?? allStores, accessors => new VolumeWriter(this.id, accessors, operations).execute(handler));
-		this.broadcast(operations);
-		return result;
+		const promise = this.db.write(stores ?? allStores, accessors => new VolumeWriter(this.id, accessors, operations).execute(handler));
+		promise.then(async () => {
+			await new Promise(resolve => requestAnimationFrame(resolve));
+			return this.broadcast(operations);
+		});
+		return promise;
 	}
 
 	public getMeta = () => this.readTxn(reader => reader.getMeta());

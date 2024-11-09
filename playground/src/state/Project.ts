@@ -28,6 +28,7 @@ export class Project {
 				if (detail.type == 'unlink') this.closeFile(detail.id);
 			}
 			this.onFilesChange.trigger();
+			this.onChange.trigger();
 		});
 		this.buildManager = new BuildManager(this, App.builders);
 	}
