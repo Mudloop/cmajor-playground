@@ -281,7 +281,9 @@ await App.init({
 					<div id="editors" style="overflow: hidden;">
 						<div class="none ${this.project?.focusedFile ? 'hidden' : ''}">Open a file to start coding</div>
 						<cmaj-monaco-container .project=${this.project} .focusedFileId=${this.project?.focusedFile?.file.id} class="${this.project?.focusedFile?.useMonaco ? '' : 'hidden'}"></cmaj-monaco-container>
-						${!this.project?.focusedFile || this.project?.focusedFile?.useMonaco ? '' : html`123`}
+						${!this.project?.focusedFile || this.project?.focusedFile?.useMonaco ? '' : html`
+							<cmaj-file-viewer .file=${this.project.focusedFile.file}></cmaj-file-viewer>
+						`}
 					</div>
 					<flex-splitter id="content-splitter" attach="next"></flex-splitter>
 					<div id="preview" style="display: flex; overflow: hidden;"><cmaj-products .hideKeyboard=${this.hideKeyboard} position=${this.layout == Layout.Vertical ? 'bottom' : 'right'} .buildManager=${this.project!.buildManager}></cmaj-products></div>

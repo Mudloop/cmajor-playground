@@ -2,7 +2,6 @@ import { LitElement, PropertyValues, css, html } from "lit";
 import { customElement, property } from "lit/decorators";
 import { COMMON_STYLES } from "./common-styles";
 import { Playground } from "./Playground";
-import { FileEditorBase } from "./FileEditorBase";
 import { EditorFile } from "../state";
 export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="10" height="10"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
 @customElement('cmaj-tabs') export class Tabs extends LitElement {

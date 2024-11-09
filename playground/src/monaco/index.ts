@@ -34,6 +34,7 @@ class EditorManager {
 	}
 	static update = async () => {
 		const promises = this.project.openFiles.map(async file => {
+			if (!file.useMonaco) return;
 			const model = await this.getModel(file);
 			const editor = this.getEditor(file, model)!;
 			editor.toggle(file == this.project.focusedFile);

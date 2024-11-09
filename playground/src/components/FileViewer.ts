@@ -1,10 +1,10 @@
-import { customElement } from "lit/decorators";
-import { css, html } from "lit";
-import { FileEditorBase } from "./FileEditorBase";
+import { customElement, property } from "lit/decorators";
+import { css, html, LitElement, PropertyValues } from "lit";
 import { mtype } from "../mtype";
 import { COMMON_STYLES } from "./common-styles";
+import { MagicFile } from "@cmajor-playground/utilities";
 
-@customElement("cmaj-file-viewer") export class FileViewer extends FileEditorBase {
+@customElement("cmaj-file-viewer") export class FileViewer extends LitElement {
 
 	static styles = css`
 		:host {
@@ -23,22 +23,30 @@ import { COMMON_STYLES } from "./common-styles";
 			object-fit: contain;
 		}
 	`;
+	@property({ type: Object }) file?: MagicFile;
 	url?: string;
-	protected onFirstContentLoad = async () => this.url = await this.getUrl();
-	protected onContentUpdate() { }
+	protected async updated(_changedProperties: PropertyValues) {
+		console.log('updated', _changedProperties);
+		if (_changedProperties.has('file')) {
+			if (this.url) URL.revokeObjectURL(this.url)
+			delete this.url;
+			this.requestUpdate();
+			this.url = await this.getUrl();
+			this.requestUpdate();
+		}
+	}
 	render = () => {
-		console.log(this.url);
 		if (!this.url) return html`<ui-loader></ui-loader>`
-		const mime = mtype(this.file.path)!;
+		const mime = mtype(this.file!.path)!;
 		if (mime.startsWith('audio')) return html`<audio controls><source src="${this.url}" type="${mime}"></audio>`;
 		else if (mime.startsWith('video')) return html`<video controls><source src="${this.url}" type="${mime}"></video>`;
 		else if (mime.startsWith('image')) return html`<img src="${this.url}">`;
-		else return html`<h2>.${this.file.path.split('.').at(-1)} files are not supported</h2><code>Mime type: ${mime}</code>`;
+		else return html`<h2>.${this.file!.path.split('.').at(-1)} files are not supported</h2><code>Mime type: ${mime}</code>`;
 	}
-	getExtension = () => this.file.name.split('.').at(-1)?.toLowerCase()
+	getExtension = () => this.file!.name.split('.').at(-1)?.toLowerCase()
 	async getUrl() {
 		// return new URL(`./$${this.file.fs.volumeId}/${this.file.path}`, document.location.href).href;
-		const content = await this.file.content;
+		const content = await this.file!.content;
 		const byteArray = content instanceof Uint8Array ? content : this.decodeBase64ToArray(content as string);
 		const blob = new Blob([byteArray], { type: `audio/${this.getExtension()}` });
 		return URL.createObjectURL(blob);
