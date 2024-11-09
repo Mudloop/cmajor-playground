@@ -19,6 +19,7 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 			overflow-y: hidden;
 			position: relative;
 			background-color: #202223;
+			visibility: hidden;
 		}
 		main {
 			position: absolute;
@@ -95,15 +96,33 @@ export const CLOSE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 	protected firstUpdated(_changedProperties: PropertyValues): void {
 		super.firstUpdated(_changedProperties);
 		this.playground.onChange.add(() => this.requestUpdate());
+		setTimeout(() => {
+			this.checkScroll(true);
+			this.style.visibility = 'visible';
+		}, 30);
 	}
 
+	firstScroll: boolean = true;
 	prevSelected: any;
 	updated() {
 		if (this.prevSelected != this.playground.project!.editorsOrder.at(-1)) {
-			const active = this.shadowRoot!.querySelector('.active');
-			active?.scrollIntoView({ behavior: 'smooth' });
-			this.prevSelected = this.playground.project!.editorsOrder.at(-1);
+			this.checkScroll();
 		}
+	}
+
+	checkScroll(forced?: boolean) {
+		const activeTab = this.shadowRoot!.querySelector('.active') as HTMLElement;
+		if (!activeTab) return;
+		const tabBar = this.shadowRoot!.querySelector('main') as HTMLElement;
+		const tabLeft = activeTab.offsetLeft;
+		const tabWidth = activeTab.offsetWidth;
+		const containerCenter = tabBar.clientWidth / 2;
+		const targetScrollPosition = tabLeft - containerCenter + (tabWidth / 2);
+		tabBar.scrollTo({
+			left: targetScrollPosition,
+			behavior: forced ? 'instant' : 'smooth'
+		});
+		this.prevSelected = this.playground.project!.editorsOrder.at(-1);
 	}
 
 	render = () => html`<main>${this.playground.project!.editors.map(editor => this.rendertab(editor))}</main>`;
