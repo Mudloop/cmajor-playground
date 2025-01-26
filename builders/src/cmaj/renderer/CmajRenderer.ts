@@ -91,6 +91,7 @@ import { RendererOptions } from "../../core/types.js";
 		connection.addAllParameterListener(async () => {
 			localStorage.setItem('state-' + options.rootFileId, JSON.stringify((await TaskManager.addTask(this, () => new Promise((resolve) => this.connection?.requestFullStoredState((state: any) => resolve(state)))))));
 		})
+		
 
 		const CmajorClass = await new Function(`return (${code});`)();
 		const inputEndpoints = CmajorClass.prototype.getInputEndpoints();
@@ -145,6 +146,7 @@ import { RendererOptions } from "../../core/types.js";
 			footer.appendChild(keyboard);
 		}
 		connection.connectDefaultAudioAndMIDI(options.ctx);
+		connection.addEndpointListener('console', console.log);
 		(window as any).connection = connection;
 
 	}

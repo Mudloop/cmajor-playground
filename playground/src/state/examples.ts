@@ -25,7 +25,8 @@ import TSPatch from "../../assets/examples/zips/TSPatch.zip" with { type: 'file'
 import ValueEcho from "../../assets/examples/zips/ValueEcho.zip" with { type: 'file' };
 import ZitaReverb from "../../assets/examples/zips/ZitaReverb.zip" with { type: 'file' };
 import FaustTest from "../../assets/examples/zips/FaustTest.zip" with { type: 'file' };
+import RuntimeDemo from "../../assets/examples/zips/RuntimeDemo.zip" with { type: 'file' };
 
 export const examples = {
-	'808': _808, AmpSim, CompuFart, ConvolutionReverb, CustomGUI, ElectricPiano, FaustFM, FaustTest, Filter, FilterBank, Freeverb, GuitarLSTM, HelloWorld, HelloWorldMidi, MidiEcho, PatchWorker, Piano, PirkleFilters, Pro54, RingMod, SineSynth, SubtractOne, TimelineTester, Tremolo, TSPatch, ValueEcho, ZitaReverb
+	'808': _808, AmpSim, CompuFart, ConvolutionReverb, CustomGUI, ElectricPiano, FaustFM, FaustTest, Filter, FilterBank, Freeverb, GuitarLSTM, HelloWorld, HelloWorldMidi, MidiEcho, PatchWorker, Piano, PirkleFilters, Pro54, RingMod, RuntimeDemo, SineSynth, SubtractOne, TimelineTester, Tremolo, TSPatch, ValueEcho, ZitaReverb
 }

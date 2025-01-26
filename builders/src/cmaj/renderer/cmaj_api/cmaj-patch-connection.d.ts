@@ -83,7 +83,7 @@ export class PatchConnection extends EventListenerList {
      *     If sendFullAudioData is true, the listener's argument will have a property 'data' which is an
      *     array containing one array per channel of raw audio samples data.
      */
-    addEndpointListener(endpointID: string, listener: any, granularity: number, sendFullAudioData: boolean): void;
+    addEndpointListener(endpointID: string, listener: any, granularity?: number, sendFullAudioData?: boolean): void;
     /** Removes a listener that was previously added with addEndpointListener()
      *  @param {string} endpointID
     */
