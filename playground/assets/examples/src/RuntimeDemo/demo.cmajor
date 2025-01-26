@@ -1,0 +1,18 @@
+processor Demo  [[ main ]] {
+    output stream float out;
+    input value float vol [[ name: "Volume", init: .01f ]];
+    input value float freq [[ name: "Freq", init: 220.0f, min: 5.0f, max: 1000.0f ]];
+    input value float sync [[ name: "Sync", init: .5f, min: .0f, max: 1.0f ]];
+    
+    var code = int[](32, 1, 0, 0, 0, 1, 1073741824, 3, 2, 2, 0, 1, 1, 3, 1, 4, 4, 3, 0, 2, 3, 0, 5, 1065353216, 5, 6, 2, 4, 5, 7, -1, 1, 6);
+    float phase;
+
+    void main() {
+        var runtime = rt::runtime::construct(code);
+        loop {
+            out <- runtime.run(float[](phase, sync)) * vol;
+            phase = (phase + freq / float(processor.frequency)) % 1.0f;
+            advance();
+        }
+    }
+}    

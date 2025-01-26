@@ -1,0 +1,94 @@
+namespace rt::runtime(namespace commands = rt::lib, int memorySize = 128, int maxCommandArguments = 8) {
+    Runtime construct(int[] code) {
+        return Runtime(code, ());
+    }
+    struct Runtime {
+        int[] code;
+        float[memorySize] memory;
+        float run<N>(float[N] args) {
+            int i = 0;
+            float[maxCommandArguments] commandArgs;
+            let n = this.code.at(i++);
+            while (i < n) {
+                let command = this.code.at(i); i++;
+                let index = this.code.at(i); i++;
+                float val;
+                if (command == 0) val = reinterpret(this.code.at(i++));
+                else if (command == 1) val = args.at(this.code.at(i++));
+                else {
+                    let count = this.code.at(i); i++;
+                    for (wrap<8> j) {
+                        if (j == count) break;
+                        commandArgs[j] = this.memory.at(this.code.at(i++));
+                    }
+                    val = commands::process(command - 3, commandArgs, count);
+                }
+                if (index == -1) return val;
+                this.memory.at(index) = val;
+            }
+            return 0;
+        }
+        void reset() { this = (); }
+    }
+    
+}
+namespace rt::lib {
+	let count = commands::count;
+	float process<T>(int type, T args, int count) { return commands::process(type, args, count); }
+	namespace commands = rt::pair(maths, waves);
+		
+	namespace maths {
+		let count = commands::count;
+		float process<T>(int type, T args, int count) { return commands::process(type, args, count); }
+		namespace commands = rt::quad(rt::command(cmd_mul), rt::command(cmd_lrp), rt::command(cmd_mod), rt::command(cmd_sin));
+
+		namespace cmd_mul { float process<T>(T args, int count) { return args[0] * args[1]; } }
+		namespace cmd_lrp { float process<T>(T args, int count) { return lerp(args[0], args[1], args[2]); } }
+		namespace cmd_mod { float process<T>(T args, int count) { return args[0] % args[1]; } }
+		namespace cmd_sin { float process<T>(T args, int count) { return sin(args[0]); } }
+
+	}
+
+	namespace waves {
+		let count = commands::count;
+		float process<T>(int type, T args, int count) { return commands::process(type, args, count); }
+		namespace commands = rt::pair(rt::command(cmd_sine), rt::command(cmd_square));
+		
+		namespace cmd_sine { float process<T>(T args, int count) { return sin(args[0] * float(twoPi)); } }
+		namespace cmd_square { float process<T>(T args, int count) { return args[0] % 1.0f < .5f ? 1.0f : -1.0f; } }
+
+	}
+}
+namespace rt {
+    float reinterpret(int val) {
+        let sign = (val >>> 31) & 1;
+        let exponent = ((val >>> 23) & 0xFF) - 127;
+        let mantissa = val & 0x7FFFFF;
+        if (exponent == -127) return mantissa == 0 ? 0.0f : pow(-1.0f, float(sign)) * (float(mantissa) / pow(2.0f, 23.0f)) * pow(2.0f, -126.0f);
+        if (exponent == 128) return mantissa == 0 ? pow(-1.0f, float(sign)) * inf : nan;
+        return pow(-1.0f, float(sign)) * (1.0f + float(mantissa) / pow(2.0f, 23.0f)) * pow(2.0f, float(exponent));
+    }
+    namespace command(namespace ns) { let count = 1; }
+    namespace pair(namespace a, namespace b) {
+        let count = a::count + b::count;
+        float process<T>(int type, T args, int count) {
+            if (type < a::count) if const(a::count == 1) return a::ns::process(args, count); else return a::process(type, args, count);
+            if const(b::count == 1) return b::ns::process(args, count); else return b::process(type - a::count, args, count);
+        }
+    }
+    namespace quad(namespace a, namespace b, namespace c, namespace d) {
+        namespace pairing = pair(pair(a, b), pair(c, d));
+        let count = pairing::count;
+        float process<T>(int type, T args, int count) { return pairing::process(type, args, count); }
+    }
+    namespace tri(namespace a, namespace b, namespace c) {
+        namespace pairing = pair(pair(a, b), c);
+        let count = pairing::count;
+        float process<T>(int type, T args, int count) { return pairing::process(type, args, count); }
+    }
+    namespace quint(namespace a, namespace b, namespace c, namespace d, namespace e) {
+        namespace pairing = pair(tri(a, b, c), paid(d, e));
+        let count = pairing::count;
+        float process<T>(int type, T args, int count) { return pairing::process(type, args, count); }
+    }
+}

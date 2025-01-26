@@ -1,0 +1,8 @@
+{
+    "CmajorVersion": 1,
+    "ID": "com.mudloop.rt",
+    "version": "1.0",
+    "name": "Runtime",
+    "isInstrument": true,
+    "source": [ "demo.cmajor", "runtime.cmajor" ]
+}
